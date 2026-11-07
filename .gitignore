@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Build output
+build/
+dist/
+*.spec
+
+# Local configs, logs and test artifacts
+.env
+*.log
+.testdata*/
+.runtime-test/
+*-screen.png
+screenshots/local-*
+
+# OS
+Thumbs.db
+.DS_Store

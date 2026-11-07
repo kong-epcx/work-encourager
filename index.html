@@ -1,0 +1,4007 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark">
+  <title>上班鼓励器</title>
+  <style>
+    /* ========== 基础变量与重置 ========== */
+    :root {
+      color-scheme: dark;
+      --bg: #07090d;
+      --card: #11151c;
+      --panel: #151b24;
+      --line: rgba(255, 255, 255, 0.075);
+      --line-strong: rgba(255, 255, 255, 0.14);
+      --text: #f2f5fa;
+      --muted: #8b95a7;
+      --faint: #5d6778;
+      --yellow: #ffd400;
+      --yellow-soft: #ffe45e;
+      --mint: #34d399;
+      --amber: #ffb84d;
+      --violet: #a78bfa;
+      --mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { background: var(--bg); }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 12px;
+      color: var(--text);
+      font-family: var(--sans);
+      background:
+        radial-gradient(circle at 14% 6%, rgba(255, 212, 0, 0.09), transparent 28%),
+        radial-gradient(circle at 92% 90%, rgba(56, 189, 248, 0.055), transparent 30%),
+        radial-gradient(circle at 50% 45%, #0b0e14 0%, var(--bg) 72%);
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    button, input { font: inherit; }
+    button { cursor: pointer; }
+    button:focus-visible,
+    input:focus-visible {
+      outline: 2px solid rgba(255, 212, 0, 0.65);
+      outline-offset: 2px;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    /* ========== 卡片外壳 ========== */
+    .card {
+      position: relative;
+      width: min(360px, 100%);
+      padding: 18px;
+      border-radius: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.085);
+      background:
+        radial-gradient(120% 70% at 12% 0%, rgba(255, 212, 0, 0.075), transparent 42%),
+        radial-gradient(90% 55% at 100% 8%, rgba(96, 165, 250, 0.055), transparent 45%),
+        linear-gradient(160deg, #141921 0%, #0f131a 54%, #0c1016 100%);
+      box-shadow:
+        0 28px 80px rgba(0, 0, 0, 0.58),
+        0 4px 18px rgba(0, 0, 0, 0.35),
+        inset 0 1px 0 rgba(255, 255, 255, 0.07);
+      overflow: hidden;
+      isolation: isolate;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.26), transparent);
+      pointer-events: none;
+    }
+
+    .card::after {
+      content: "";
+      position: absolute;
+      width: 190px;
+      height: 190px;
+      right: -100px;
+      bottom: -120px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255, 184, 77, 0.05), transparent 65%);
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    /* ========== 顶部区域 ========== */
+    .brand-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      color: #d4dbe6;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    .brand-mark {
+      display: grid;
+      place-items: center;
+      width: 21px;
+      height: 21px;
+      border-radius: 7px;
+      color: var(--yellow);
+      background: rgba(255, 212, 0, 0.1);
+      border: 1px solid rgba(255, 212, 0, 0.18);
+      box-shadow: 0 0 16px rgba(255, 212, 0, 0.08);
+    }
+
+    .date-group {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      flex: none;
+    }
+
+    .date-label {
+      color: var(--faint);
+      font-size: 10px;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+    }
+
+    .day-flag {
+      padding: 2px 5px;
+      border: 1px solid rgba(255, 184, 77, 0.25);
+      border-radius: 999px;
+      color: var(--amber);
+      background: rgba(255, 184, 77, 0.08);
+      font-size: 8px;
+      font-weight: 650;
+      line-height: 1.15;
+      white-space: nowrap;
+    }
+
+    .day-flag[hidden] {
+      display: none;
+    }
+
+    .clock-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 9px;
+    }
+
+    .clock {
+      color: #ffffff;
+      font-family: var(--mono);
+      font-size: 33px;
+      font-weight: 750;
+      line-height: 1;
+      letter-spacing: -0.045em;
+      font-variant-numeric: tabular-nums;
+      text-shadow: 0 0 30px rgba(255, 255, 255, 0.08);
+      white-space: nowrap;
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      flex: none;
+      padding: 6px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      white-space: nowrap;
+      transition: color 0.3s ease, background-color 0.3s ease, border-color 0.3s ease;
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+      box-shadow: 0 0 9px currentColor;
+    }
+
+    .status[data-state="working"] {
+      color: #6ee7b7;
+      border-color: rgba(52, 211, 153, 0.24);
+      background: rgba(52, 211, 153, 0.085);
+    }
+    .status[data-state="rest"] {
+      color: #ffca72;
+      border-color: rgba(255, 184, 77, 0.25);
+      background: rgba(255, 184, 77, 0.085);
+    }
+    .status[data-state="idle"] {
+      color: #9ab7ff;
+      border-color: rgba(122, 162, 255, 0.22);
+      background: rgba(122, 162, 255, 0.075);
+    }
+    .status[data-state="done"] {
+      color: #c4b5fd;
+      border-color: rgba(167, 139, 250, 0.23);
+      background: rgba(167, 139, 250, 0.085);
+    }
+    .status[data-state="working"] .status-dot {
+      animation: dotPulse 1.6s ease-in-out infinite;
+    }
+
+    .mood-line {
+      min-height: 15px;
+      margin: 7px 0 0;
+      color: var(--muted);
+      font-size: 10.5px;
+      line-height: 1.45;
+      letter-spacing: 0.01em;
+    }
+
+    /* ========== 可视化区域 ========== */
+    .viz {
+      position: relative;
+      margin-top: 13px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: #0b0f15;
+      overflow: hidden;
+      isolation: isolate;
+    }
+
+    .viz::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.055),
+        inset 0 -20px 30px rgba(0, 0, 0, 0.16);
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .workspace {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    .particles {
+      position: absolute;
+      inset: 0;
+      z-index: 3;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    /* 环形进度 */
+    .ring-progress {
+      transition:
+        stroke-dashoffset 0.85s cubic-bezier(0.22, 1, 0.36, 1),
+        stroke 0.7s linear;
+      filter: drop-shadow(0 0 5px rgba(255, 212, 0, 0.22));
+    }
+
+    .ring-percent {
+      font-family: var(--mono);
+      font-size: 21px;
+      font-weight: 800;
+      fill: #ffffff;
+      letter-spacing: -0.05em;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .ring-caption {
+      font-family: var(--sans);
+      font-size: 7.5px;
+      font-weight: 600;
+      fill: #8c98aa;
+      letter-spacing: 0.14em;
+    }
+
+    /* 工位小人的场景切换 */
+    .scene {
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.32s ease, visibility 0.32s;
+    }
+
+    .viz[data-state="working"] .scene-working,
+    .viz[data-state="rest"] .scene-rest,
+    .viz[data-state="idle"] .scene-sleep,
+    .viz[data-state="done"] .scene-sleep {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    /* 隐藏场景里的动画暂停，只在当前场景里运行，省电也省性能 */
+    .scene * {
+      animation-play-state: paused !important;
+    }
+    .viz[data-state="working"] .scene-working *,
+    .viz[data-state="rest"] .scene-rest *,
+    .viz[data-state="idle"] .scene-sleep *,
+    .viz[data-state="done"] .scene-sleep * {
+      animation-play-state: running !important;
+    }
+
+    .screen-layer {
+      opacity: 0;
+      transition: opacity 0.28s ease;
+    }
+    .viz[data-state="working"] .screen-code,
+    .viz[data-state="rest"] .screen-break,
+    .viz[data-state="idle"] .screen-off,
+    .viz[data-state="done"] .screen-off {
+      opacity: 1;
+    }
+
+    .code-stream {
+      animation: codeScroll 3.6s linear infinite;
+    }
+    .viz:not([data-state="working"]) .code-stream {
+      animation-play-state: paused;
+    }
+
+    .worker-bob {
+      transform-box: view-box;
+      transform-origin: 166px 100px;
+      animation: workerBob 1.8s ease-in-out infinite;
+    }
+
+    .typing-arm {
+      transform-box: view-box;
+    }
+    .typing-arm-left {
+      transform-origin: 156px 80px;
+      animation: typeLeft 0.3s ease-in-out infinite alternate;
+    }
+    .typing-arm-right {
+      transform-origin: 174px 78px;
+      animation: typeRight 0.3s ease-in-out infinite alternate;
+      animation-delay: 0.12s;
+    }
+
+    .coffee-hold {
+      transform-box: view-box;
+      transform-origin: 174px 78px;
+      animation: coffeeSip 4.8s ease-in-out infinite;
+    }
+
+    .steam path {
+      fill: none;
+      stroke: #dbe5ef;
+      stroke-width: 1.15;
+      stroke-linecap: round;
+      opacity: 0;
+      animation: steamRise 2.6s ease-out infinite;
+    }
+    .steam path:nth-child(2) { animation-delay: 0.8s; }
+    .steam path:nth-child(3) { animation-delay: 1.55s; }
+
+    .sleep-breathe {
+      transform-box: view-box;
+      transform-origin: 176px 102px;
+      animation: sleepBreathe 3.8s ease-in-out infinite;
+    }
+
+    .zzz text {
+      font-family: var(--mono);
+      font-weight: 800;
+      fill: #9bb7ff;
+      opacity: 0;
+      animation: zFloat 2.8s ease-in-out infinite;
+    }
+    .zzz text:nth-child(2) {
+      font-size: 11px;
+      animation-delay: 0.45s;
+    }
+    .zzz text:nth-child(3) {
+      font-size: 13px;
+      animation-delay: 0.9s;
+    }
+
+    .blink-cursor {
+      animation: cursorBlink 1.1s steps(2, end) infinite;
+    }
+
+    .viz:not([data-state="rest"]) .keyboard {
+      transition: opacity 0.3s ease;
+    }
+    .viz[data-state="rest"] .keyboard {
+      opacity: 0.25;
+    }
+
+    /* ========== 金额与时长 ========== */
+    .earnings {
+      position: relative;
+      margin-top: 12px;
+      padding: 14px 15px 12px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background:
+        radial-gradient(95% 150% at 100% 0%, rgba(255, 212, 0, 0.075), transparent 55%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.032), rgba(255, 255, 255, 0.012));
+      overflow: hidden;
+    }
+
+    .earnings::before {
+      content: "";
+      position: absolute;
+      width: 120px;
+      height: 120px;
+      top: -70px;
+      right: -35px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255, 212, 0, 0.11), transparent 68%);
+      pointer-events: none;
+    }
+
+    .earnings-head {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .eyebrow {
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 650;
+      letter-spacing: 0.09em;
+    }
+
+    .rate-hint {
+      flex: none;
+      padding: 3px 6px;
+      border: 1px solid rgba(255, 212, 0, 0.15);
+      border-radius: 999px;
+      color: rgba(255, 212, 0, 0.72);
+      background: rgba(255, 212, 0, 0.045);
+      font-family: var(--mono);
+      font-size: 8.6px;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+      transition: color 0.25s ease, background-color 0.25s ease, border-color 0.25s ease;
+    }
+
+    .rate-hint[data-mode="overtime"] {
+      color: #ffca72;
+      border-color: rgba(255, 184, 77, 0.26);
+      background: rgba(255, 184, 77, 0.085);
+    }
+
+    .rate-hint[data-mode="mixed"] {
+      color: #ffe29a;
+      border-color: rgba(255, 212, 0, 0.24);
+      background: rgba(255, 212, 0, 0.075);
+    }
+
+    .amount {
+      position: relative;
+      margin-top: 1px;
+      color: var(--yellow);
+      font-family: var(--mono);
+      font-size: 38px;
+      font-weight: 800;
+      line-height: 1.08;
+      letter-spacing: -0.055em;
+      font-variant-numeric: tabular-nums;
+      text-shadow: 0 0 26px rgba(255, 212, 0, 0.2);
+      white-space: nowrap;
+    }
+
+    .amount .currency {
+      display: inline-block;
+      margin-right: 2px;
+      font-family: var(--sans);
+      font-size: 22px;
+      font-weight: 800;
+      vertical-align: 4px;
+      letter-spacing: 0;
+      opacity: 0.92;
+    }
+
+    .metrics {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      margin-top: 8px;
+      padding-top: 9px;
+      border-top: 1px solid rgba(255, 255, 255, 0.065);
+    }
+
+    .metric {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      min-width: 0;
+      color: var(--muted);
+      font-size: 10px;
+      white-space: nowrap;
+    }
+
+    .metric svg {
+      flex: none;
+      color: #6d7788;
+    }
+
+    .metric strong {
+      color: #e7ebf2;
+      font-family: var(--mono);
+      font-size: 11.5px;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .metric-divider {
+      width: 1px;
+      height: 11px;
+      background: var(--line);
+    }
+
+    /* ========== 今日时间轴 ========== */
+    .timeline {
+      margin-top: 14px;
+      padding: 0 1px;
+    }
+
+    .timeline-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .timeline-summary {
+      color: var(--faint);
+      font-family: var(--mono);
+      font-size: 9px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .timeline-bar {
+      position: relative;
+      height: 12px;
+      margin-top: 14px;
+    }
+
+    .timeline-track {
+      position: absolute;
+      inset: 2px 0 auto;
+      height: 8px;
+      border-radius: 999px;
+      background: #1a202a;
+      box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3);
+      overflow: hidden;
+    }
+
+    .tl-seg {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      min-width: 2px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.035);
+      overflow: hidden;
+    }
+
+    .tl-fill {
+      display: block;
+      width: 0;
+      height: 100%;
+      border-radius: inherit;
+      background: #2a3240;
+      transition: width 0.85s linear, background-color 0.35s ease, box-shadow 0.35s ease;
+    }
+
+    .tl-seg[data-state="done"] .tl-fill {
+      background: #2fbf99;
+      box-shadow: 0 0 8px rgba(47, 191, 153, 0.18);
+    }
+
+    .tl-seg[data-state="active"] .tl-fill {
+      background: linear-gradient(90deg, #ffae00, #ffd400);
+      box-shadow: 0 0 10px rgba(255, 212, 0, 0.48);
+    }
+
+    .now-cursor {
+      position: absolute;
+      z-index: 4;
+      top: -3px;
+      bottom: -3px;
+      width: 1px;
+      border-radius: 2px;
+      background: rgba(255, 255, 255, 0.88);
+      box-shadow: 0 0 8px rgba(255, 255, 255, 0.48);
+      transform: translateX(-0.5px);
+      transition: left 0.85s linear;
+      pointer-events: none;
+    }
+
+    .now-cursor::before {
+      content: "";
+      position: absolute;
+      top: -2px;
+      left: 50%;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: #ffffff;
+      box-shadow: 0 0 8px rgba(255, 255, 255, 0.7);
+      transform: translateX(-50%);
+    }
+
+    .now-tip {
+      position: absolute;
+      bottom: 15px;
+      left: 50%;
+      padding: 2px 5px;
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      border-radius: 5px;
+      color: #d8deea;
+      background: #1b222d;
+      font-family: var(--mono);
+      font-size: 8px;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+      transform: translateX(-50%);
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.25);
+    }
+
+    .now-cursor[data-edge="start"] .now-tip {
+      left: 0;
+      transform: translateX(0);
+    }
+    .now-cursor[data-edge="end"] .now-tip {
+      left: auto;
+      right: 0;
+      transform: translateX(0);
+    }
+
+    .timeline-scale {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 7px;
+      color: #4f596b;
+      font-family: var(--mono);
+      font-size: 8px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ========== 配置面板 ========== */
+    .config {
+      margin-top: 12px;
+      padding-top: 9px;
+      border-top: 1px solid var(--line);
+    }
+
+    .config-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      padding: 5px 1px;
+      border: 0;
+      color: var(--text);
+      background: transparent;
+      text-align: left;
+    }
+
+    .config-title {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 11.5px;
+      font-weight: 650;
+    }
+
+    .config-title svg {
+      color: #778295;
+    }
+
+    .config-sub {
+      margin-left: 1px;
+      color: var(--faint);
+      font-size: 9.5px;
+      font-weight: 400;
+    }
+
+    .chevron {
+      color: var(--faint);
+      transition: transform 0.25s ease;
+    }
+
+    .config.is-open .chevron {
+      transform: rotate(180deg);
+    }
+
+    .config-body {
+      padding: 6px 1px 0;
+    }
+
+    .config-block {
+      margin-top: 2px;
+      padding-top: 6px;
+      border-top: 1px solid rgba(255, 255, 255, 0.055);
+    }
+
+    .config-block:first-of-type {
+      margin-top: 0;
+      padding-top: 2px;
+      border-top: 0;
+    }
+
+    .rate-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 8px;
+      padding: 3px 0 1px;
+    }
+
+    .rate-card {
+      display: block;
+      padding: 6px 8px 7px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: #0b0f15;
+      cursor: text;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .rate-card:focus-within {
+      border-color: rgba(255, 212, 0, 0.42);
+      box-shadow: 0 0 0 2px rgba(255, 212, 0, 0.07);
+    }
+
+    .rate-card-label {
+      display: block;
+      margin-bottom: 3px;
+      color: var(--faint);
+      font-size: 8.5px;
+      letter-spacing: 0.04em;
+    }
+
+    .rate-input-wrap {
+      display: flex;
+      align-items: baseline;
+      gap: 3px;
+      min-width: 0;
+      color: var(--faint);
+      font-family: var(--mono);
+      font-size: 9px;
+    }
+
+    .rate-input-wrap input {
+      flex: 1;
+      width: 100%;
+      min-width: 0;
+      padding: 0;
+      border: 0;
+      outline: 0;
+      color: var(--yellow);
+      background: transparent;
+      font-family: var(--mono);
+      font-size: 14px;
+      font-weight: 700;
+      text-align: left;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .rate-input-wrap input::-webkit-outer-spin-button,
+    .rate-input-wrap input::-webkit-inner-spin-button {
+      margin: 0;
+      -webkit-appearance: none;
+    }
+    .rate-input-wrap input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
+
+    .form-label {
+      color: var(--muted);
+      font-size: 10.5px;
+    }
+
+    .segmented {
+      display: flex;
+      gap: 2px;
+      padding: 2px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: #0b0f15;
+    }
+
+    .segmented button {
+      flex: 1;
+      min-width: 0;
+      padding: 6px 6px;
+      border: 0;
+      border-radius: 6px;
+      color: var(--muted);
+      background: transparent;
+      font-size: 9.5px;
+      font-weight: 650;
+      transition: color 0.18s ease, background-color 0.18s ease;
+    }
+
+    .segmented button:hover {
+      color: #e5eaf2;
+    }
+
+    .segmented button[aria-pressed="true"] {
+      color: #1a1500;
+      background: var(--yellow);
+      box-shadow: 0 2px 8px rgba(255, 212, 0, 0.16);
+    }
+
+    .weekday-chips {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 4px;
+    }
+
+    .weekday-chip {
+      min-width: 0;
+      padding: 6px 0;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      color: var(--muted);
+      background: #0b0f15;
+      font-size: 9px;
+      font-weight: 650;
+      white-space: nowrap;
+      transition: color 0.18s ease, background-color 0.18s ease, border-color 0.18s ease;
+    }
+
+    .weekday-chip:hover {
+      color: #e5eaf2;
+      border-color: var(--line-strong);
+    }
+
+    .weekday-chip[aria-pressed="true"] {
+      color: var(--amber);
+      border-color: rgba(255, 184, 77, 0.34);
+      background: rgba(255, 184, 77, 0.1);
+    }
+
+    .pay-rule-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .pay-rule-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 10px minmax(0, 1fr) 62px 27px;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .type-select {
+      width: 100%;
+      min-width: 0;
+      padding: 6px 4px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      outline: 0;
+      color: #e1e7f0;
+      background: #0b0f15;
+      font-family: var(--sans);
+      font-size: 9px;
+      color-scheme: dark;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .type-select:focus {
+      border-color: rgba(255, 212, 0, 0.42);
+      box-shadow: 0 0 0 2px rgba(255, 212, 0, 0.07);
+    }
+
+    .config-block-note {
+      color: var(--faint);
+      font-size: 8.5px;
+      line-height: 1.5;
+    }
+
+    .interval-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 3px 0 3px;
+      color: var(--muted);
+      font-size: 10.5px;
+    }
+
+    .interval-head span {
+      color: var(--faint);
+      font-size: 9px;
+    }
+
+    .interval-head span.is-warning-highlight {
+      color: var(--amber);
+    }
+
+    .interval-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .interval-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 12px minmax(0, 1fr) 27px;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .time-input {
+      width: 100%;
+      min-width: 0;
+      padding: 6px 6px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      outline: 0;
+      color: #e1e7f0;
+      background: #0b0f15;
+      font-family: var(--mono);
+      font-size: 10.5px;
+      font-variant-numeric: tabular-nums;
+      color-scheme: dark;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .time-input:focus {
+      border-color: rgba(255, 212, 0, 0.42);
+      box-shadow: 0 0 0 2px rgba(255, 212, 0, 0.07);
+    }
+
+    .time-input.time-trigger {
+      padding-right: 22px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23717d90' stroke-width='1.8' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='8.5'/%3E%3Cpath d='M12 7.5V12l3 2'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 7px center;
+      background-size: 11px 11px;
+      cursor: pointer;
+      caret-color: transparent;
+    }
+
+    .time-input.time-trigger:hover {
+      border-color: rgba(255, 255, 255, 0.16);
+    }
+
+    .time-input.time-trigger[aria-expanded="true"] {
+      border-color: rgba(255, 212, 0, 0.5);
+      box-shadow: 0 0 0 2px rgba(255, 212, 0, 0.08);
+    }
+
+    .range-arrow {
+      color: #4e5868;
+      font-size: 9px;
+      text-align: center;
+    }
+
+    .icon-btn {
+      display: grid;
+      place-items: center;
+      width: 27px;
+      height: 28px;
+      padding: 0;
+      border: 1px solid transparent;
+      border-radius: 7px;
+      color: var(--faint);
+      background: transparent;
+      transition: color 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+    }
+
+    .icon-btn:hover:not(:disabled) {
+      color: #ff9b9b;
+      border-color: rgba(255, 120, 120, 0.18);
+      background: rgba(255, 120, 120, 0.06);
+    }
+
+    .icon-btn:disabled {
+      opacity: 0.25;
+      cursor: not-allowed;
+    }
+
+    .add-interval {
+      width: 100%;
+      margin-top: 5px;
+      padding: 6px 8px;
+      border: 1px dashed rgba(255, 255, 255, 0.12);
+      border-radius: 8px;
+      color: var(--muted);
+      background: rgba(255, 255, 255, 0.015);
+      font-size: 10px;
+      transition: color 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+    }
+
+    .add-interval:hover {
+      color: var(--yellow);
+      border-color: rgba(255, 212, 0, 0.32);
+      background: rgba(255, 212, 0, 0.035);
+    }
+
+    .form-error {
+      max-height: 0;
+      margin: 0;
+      overflow: hidden;
+      color: #ff9b9b;
+      font-size: 10px;
+      line-height: 1.5;
+      opacity: 0;
+      transition: max-height 0.22s ease, margin 0.22s ease, opacity 0.22s ease;
+    }
+
+    .form-error.is-visible {
+      max-height: 140px;
+      margin-top: 8px;
+      opacity: 1;
+    }
+
+    .config-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 7px;
+    }
+
+    .btn {
+      border-radius: 9px;
+      font-size: 10.5px;
+      font-weight: 700;
+      transition: transform 0.18s ease, filter 0.18s ease, border-color 0.18s ease, background-color 0.18s ease;
+    }
+
+    .btn:active { transform: translateY(1px); }
+
+    .btn-primary {
+      flex: 1;
+      padding: 9px 10px;
+      border: 0;
+      color: #1a1500;
+      background: linear-gradient(180deg, #ffe45e, #ffd400);
+      box-shadow: 0 5px 16px rgba(255, 212, 0, 0.14);
+    }
+    .btn-primary:hover { filter: brightness(1.04); }
+
+    .btn-ghost {
+      padding: 9px 12px;
+      border: 1px solid var(--line-strong);
+      color: var(--muted);
+      background: rgba(255, 255, 255, 0.025);
+    }
+    .btn-ghost:hover {
+      color: #e5eaf2;
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .config-hint {
+      margin: 4px 0 0;
+      color: #505a6b;
+      font-size: 8px;
+      line-height: 1.35;
+      text-align: center;
+    }
+
+    /* ========== 时间滚轮选择器 ========== */
+    .time-picker-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 80;
+      background: rgba(2, 5, 9, 0.22);
+      backdrop-filter: blur(1px);
+    }
+
+    .time-picker-backdrop[hidden],
+    .time-picker[hidden] {
+      display: none;
+    }
+
+    .time-picker {
+      --tp-item-height: 32px;
+      --tp-viewport-height: 160px;
+      position: fixed;
+      z-index: 81;
+      width: min(236px, calc(100vw - 22px));
+      padding: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.13);
+      border-radius: 16px;
+      background:
+        radial-gradient(100% 70% at 50% 0%, rgba(255, 212, 0, 0.055), transparent 55%),
+        linear-gradient(180deg, #1a212b, #11161e);
+      box-shadow:
+        0 22px 56px rgba(0, 0, 0, 0.62),
+        0 4px 14px rgba(0, 0, 0, 0.35),
+        inset 0 1px 0 rgba(255, 255, 255, 0.07);
+      opacity: 0;
+      transform: translateY(4px) scale(0.98);
+      transition: opacity 0.15s ease, transform 0.15s ease;
+    }
+
+    .time-picker.is-open {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+
+    .tp-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 0 2px 9px;
+    }
+
+    .tp-kicker {
+      color: var(--faint);
+      font-size: 8px;
+      font-weight: 650;
+      letter-spacing: 0.1em;
+    }
+
+    .tp-preview {
+      margin-top: 1px;
+      color: var(--yellow);
+      font-family: var(--mono);
+      font-size: 22px;
+      font-weight: 800;
+      line-height: 1.05;
+      letter-spacing: -0.04em;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .tp-mode-hint {
+      max-width: 88px;
+      color: #566274;
+      font-size: 8px;
+      line-height: 1.4;
+      text-align: right;
+    }
+
+    .tp-body {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 7px;
+    }
+
+    .tp-column {
+      min-width: 0;
+      padding: 0 1px 2px;
+      border: 1px solid rgba(255, 255, 255, 0.065);
+      border-radius: 11px;
+      background: #0a0e14;
+      overflow: hidden;
+    }
+
+    .tp-col-label {
+      padding: 6px 0 2px;
+      color: #586476;
+      font-size: 8px;
+      font-weight: 650;
+      letter-spacing: 0.18em;
+      text-align: center;
+    }
+
+    .tp-viewport {
+      position: relative;
+      height: var(--tp-viewport-height);
+      overflow: hidden;
+      outline: none;
+      touch-action: none;
+      user-select: none;
+      -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 21%, #000 79%, transparent 100%);
+      mask-image: linear-gradient(to bottom, transparent 0%, #000 21%, #000 79%, transparent 100%);
+      cursor: grab;
+    }
+
+    .tp-viewport:active {
+      cursor: grabbing;
+    }
+
+    .tp-viewport:focus-visible {
+      box-shadow: inset 0 0 0 1px rgba(255, 212, 0, 0.42);
+      border-radius: 8px;
+    }
+
+    .tp-band {
+      position: absolute;
+      z-index: 0;
+      top: 50%;
+      left: 5px;
+      right: 5px;
+      height: var(--tp-item-height);
+      border-top: 1px solid rgba(255, 212, 0, 0.2);
+      border-bottom: 1px solid rgba(255, 212, 0, 0.2);
+      border-radius: 7px;
+      background: linear-gradient(90deg, rgba(255, 212, 0, 0.035), rgba(255, 212, 0, 0.085), rgba(255, 212, 0, 0.035));
+      transform: translateY(-50%);
+      pointer-events: none;
+    }
+
+    .tp-track {
+      position: absolute;
+      z-index: 1;
+      top: 0;
+      left: 0;
+      right: 0;
+      will-change: transform;
+      transition-property: transform;
+      transition-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    .tp-item {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: var(--tp-item-height);
+      color: #768296;
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      cursor: pointer;
+      user-select: none;
+      transition: color 0.12s ease;
+    }
+
+    .tp-item:hover {
+      color: #d1d9e5;
+    }
+
+    .tp-item.is-selected {
+      color: #ffffff;
+      font-weight: 800;
+      text-shadow: 0 0 12px rgba(255, 212, 0, 0.34);
+    }
+
+    .tp-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 9px;
+    }
+
+    .tp-hint {
+      color: #4d596a;
+      font-size: 8px;
+      line-height: 1.4;
+    }
+
+    .tp-done {
+      flex: none;
+      padding: 7px 14px;
+      border: 0;
+      border-radius: 8px;
+      color: #1a1500;
+      background: linear-gradient(180deg, #ffe45e, #ffd400);
+      box-shadow: 0 4px 12px rgba(255, 212, 0, 0.15);
+      font-size: 10px;
+      font-weight: 800;
+    }
+
+    .tp-done:hover {
+      filter: brightness(1.04);
+    }
+
+    /* ========== 粒子 ========== */
+    .particle {
+      position: absolute;
+      pointer-events: none;
+      will-change: transform, opacity;
+    }
+
+    .particle.money {
+      color: #ffe45e;
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      text-shadow: 0 0 9px rgba(255, 212, 0, 0.55), 0 1px 2px rgba(0, 0, 0, 0.4);
+      animation: moneyFloat 0.95s cubic-bezier(0.18, 0.75, 0.28, 1) forwards;
+      white-space: nowrap;
+    }
+
+    .particle.coin {
+      display: grid;
+      place-items: center;
+      width: 16px;
+      height: 16px;
+      border: 1px solid #ffe680;
+      border-radius: 50%;
+      color: #654900;
+      background: radial-gradient(circle at 34% 28%, #fff5a8, #ffd400 52%, #d99b00 100%);
+      box-shadow: 0 0 12px rgba(255, 212, 0, 0.4);
+      font-family: var(--mono);
+      font-size: 9px;
+      font-weight: 900;
+      animation: coinDrop 0.95s cubic-bezier(0.2, 0.7, 0.4, 1) forwards;
+    }
+
+    /* ========== 轻提示 ========== */
+    .toast {
+      position: fixed;
+      z-index: 20;
+      left: 50%;
+      bottom: 24px;
+      max-width: calc(100vw - 32px);
+      padding: 8px 13px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 999px;
+      color: #dce3ee;
+      background: rgba(20, 25, 34, 0.94);
+      box-shadow: 0 12px 34px rgba(0, 0, 0, 0.42);
+      font-size: 10.5px;
+      line-height: 1.4;
+      white-space: nowrap;
+      opacity: 0;
+      transform: translate(-50%, 10px);
+      pointer-events: none;
+      transition: opacity 0.22s ease, transform 0.22s ease;
+      backdrop-filter: blur(12px);
+    }
+
+    .toast.is-visible {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
+    .toast[data-tone="warn"] {
+      color: #ffd8a3;
+      border-color: rgba(255, 184, 77, 0.2);
+    }
+
+    /* ========== 动画 ========== */
+    @keyframes dotPulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.68); }
+    }
+
+    @keyframes typeLeft {
+      from { transform: rotate(-4deg) translateY(0); }
+      to { transform: rotate(2.5deg) translateY(-0.6px); }
+    }
+
+    @keyframes typeRight {
+      from { transform: rotate(3deg) translateY(-0.5px); }
+      to { transform: rotate(-3deg) translateY(0); }
+    }
+
+    @keyframes workerBob {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-1.1px); }
+    }
+
+    @keyframes codeScroll {
+      from { transform: translateY(0); }
+      to { transform: translateY(-35px); }
+    }
+
+    @keyframes cursorBlink {
+      0%, 45% { opacity: 1; }
+      46%, 100% { opacity: 0; }
+    }
+
+    @keyframes coffeeSip {
+      0%, 12%, 100% { transform: rotate(0); }
+      42%, 58% { transform: rotate(-4.5deg); }
+    }
+
+    @keyframes steamRise {
+      0% { opacity: 0; transform: translateY(2px); }
+      22% { opacity: 0.52; }
+      65% { opacity: 0.28; }
+      100% { opacity: 0; transform: translateY(-10px); }
+    }
+
+    @keyframes sleepBreathe {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-0.9px); }
+    }
+
+    @keyframes zFloat {
+      0% { opacity: 0; transform: translateY(2px) scale(0.9); }
+      22% { opacity: 0.9; }
+      70% { opacity: 0.55; }
+      100% { opacity: 0; transform: translateY(-9px) scale(1.06); }
+    }
+
+    @keyframes moneyFloat {
+      0% { opacity: 0; transform: translate3d(0, 4px, 0) scale(0.82); }
+      16% { opacity: 1; }
+      72% { opacity: 1; }
+      100% { opacity: 0; transform: translate3d(var(--drift, 0px), -31px, 0) scale(1.04); }
+    }
+
+    @keyframes coinDrop {
+      0% { opacity: 0; transform: translate3d(0, -11px, 0) rotate(-35deg) scale(0.78); }
+      20% { opacity: 1; }
+      72% { opacity: 1; }
+      100% { opacity: 0; transform: translate3d(var(--drift, 0px), 32px, 0) rotate(215deg) scale(1); }
+    }
+
+    /* ========== 响应式与无障碍 ========== */
+    @media (max-width: 380px) {
+      body { padding: 12px 8px; }
+      .card { padding: 15px; border-radius: 21px; }
+      .clock { font-size: 30px; }
+      .amount { font-size: 35px; }
+      .amount .currency { font-size: 20px; }
+      .viz { border-radius: 16px; }
+    }
+
+    /* ========== 桌面挂件模式 ========== */
+    .drag-zone {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex: 1;
+      min-width: 0;
+    }
+
+    /* 桌面版：这里作为拖动区域，点击后交给 Python 进行原生拖动 */
+    body.is-desktop .drag-zone {
+      cursor: grab;
+    }
+    body.is-desktop .drag-zone:active {
+      cursor: grabbing;
+    }
+
+    .window-controls {
+      display: none;
+      align-items: center;
+      gap: 2px;
+      flex: none;
+      margin-left: 3px;
+    }
+
+    body.is-desktop .window-controls {
+      display: flex;
+    }
+
+    .window-btn {
+      display: grid;
+      place-items: center;
+      width: 22px;
+      height: 22px;
+      padding: 0;
+      border: 1px solid transparent;
+      border-radius: 7px;
+      color: #667184;
+      background: transparent;
+      transition: color 0.18s ease, background-color 0.18s ease, border-color 0.18s ease;
+    }
+
+    .window-btn:hover {
+      color: #e9eef6;
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .window-btn[data-action="close"]:hover {
+      color: #ff9c9c;
+      background: rgba(255, 110, 110, 0.09);
+    }
+
+    .window-btn.is-active {
+      color: var(--yellow);
+      border-color: rgba(255, 212, 0, 0.14);
+      background: rgba(255, 212, 0, 0.075);
+    }
+
+    .window-btn svg {
+      pointer-events: none;
+    }
+
+    body.is-desktop {
+      padding: 10px;
+      overflow-y: auto;
+    }
+
+    body.is-desktop .card {
+      width: 100%;
+    }
+
+    body.is-desktop .clock {
+      font-size: 33px;
+    }
+
+    body.is-desktop .amount {
+      font-size: 38px;
+    }
+
+    body.is-desktop .amount .currency {
+      font-size: 22px;
+    }
+
+    body.is-desktop::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+
+    body.is-desktop::-webkit-scrollbar-thumb {
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.14);
+    }
+
+    body.is-desktop::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="card" aria-label="上班鼓励器">
+    <!-- 顶部：时间与状态 -->
+    <header>
+      <div class="brand-row">
+        <div class="drag-zone" id="dragZone">
+          <div class="brand">
+            <span class="brand-mark" aria-hidden="true">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                <path d="M13.2 2 4.9 13.3h5.2L9.2 22l8.1-12h-5.1l1-8Z" fill="currentColor"/>
+              </svg>
+            </span>
+            <span>上班鼓励器</span>
+          </div>
+          <span class="date-group">
+            <span class="date-label" id="dateLabel">--月--日</span>
+            <span class="day-flag" id="dayFlag" hidden>全天加班</span>
+          </span>
+        </div>
+
+        <div class="window-controls" id="windowControls" aria-label="窗口控制">
+          <button class="window-btn" id="pinBtn" type="button" title="取消置顶" aria-label="取消置顶" aria-pressed="true">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M9 3.2h6l-.8 5.4 3.8 3.8v1.5h-4.6v6l-1.4 1.3-1.4-1.3v-6H5.4v-1.5l3.8-3.8L9 3.2Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <button class="window-btn" id="minimizeBtn" type="button" title="最小化" aria-label="最小化">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M6 12h12" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+            </svg>
+          </button>
+          <button class="window-btn" id="closeBtn" data-action="close" type="button" title="关闭" aria-label="关闭">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M7 7l10 10M17 7 7 17" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="clock-row">
+        <time class="clock" id="clock" aria-label="当前时间">--:--:--</time>
+        <span class="status" id="statusBadge" data-state="idle" aria-live="polite">
+          <i class="status-dot" aria-hidden="true"></i>
+          <span id="statusText">未开始</span>
+        </span>
+      </div>
+
+      <p class="mood-line" id="moodLine">今天还没开工，先给自己打个气。</p>
+    </header>
+
+    <!-- 中部：进度环 + 工位小人 + 粒子 -->
+    <section class="viz" id="viz" data-state="idle" aria-label="今日工作进度和工位动画">
+      <svg class="workspace" viewBox="0 0 320 158" role="img" aria-labelledby="vizTitle">
+        <title id="vizTitle">今日工作进度环和正在工位上的小人</title>
+        <defs>
+          <linearGradient id="vizBg" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#111720"/>
+            <stop offset="0.55" stop-color="#0d1219"/>
+            <stop offset="1" stop-color="#0a0e14"/>
+          </linearGradient>
+          <radialGradient id="warmGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0" stop-color="#ffd400" stop-opacity="0.13"/>
+            <stop offset="0.65" stop-color="#ffd400" stop-opacity="0.035"/>
+            <stop offset="1" stop-color="#ffd400" stop-opacity="0"/>
+          </radialGradient>
+          <radialGradient id="screenGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0" stop-color="#38bdf8" stop-opacity="0.13"/>
+            <stop offset="1" stop-color="#38bdf8" stop-opacity="0"/>
+          </radialGradient>
+          <linearGradient id="deskGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#3b4656"/>
+            <stop offset="0.35" stop-color="#2b3543"/>
+            <stop offset="1" stop-color="#202833"/>
+          </linearGradient>
+          <linearGradient id="screenFace" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#0b1825"/>
+            <stop offset="1" stop-color="#07101a"/>
+          </linearGradient>
+          <linearGradient id="shirtGrad" x1="0" y1="0" x2="0.85" y2="1">
+            <stop offset="0" stop-color="#5b9dff"/>
+            <stop offset="0.6" stop-color="#3b82f6"/>
+            <stop offset="1" stop-color="#2563eb"/>
+          </linearGradient>
+          <linearGradient id="chairGrad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#27313e"/>
+            <stop offset="1" stop-color="#19212b"/>
+          </linearGradient>
+          <linearGradient id="screenGlare" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#ffffff" stop-opacity="0.11"/>
+            <stop offset="0.5" stop-color="#ffffff" stop-opacity="0.015"/>
+            <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+          </linearGradient>
+          <pattern id="dotGrid" width="12" height="12" patternUnits="userSpaceOnUse">
+            <circle cx="1" cy="1" r="0.55" fill="#ffffff" opacity="0.09"/>
+          </pattern>
+          <clipPath id="vizClip">
+            <rect x="0" y="0" width="320" height="158" rx="18"/>
+          </clipPath>
+          <clipPath id="screenClip">
+            <rect x="229" y="49" width="70" height="40" rx="3"/>
+          </clipPath>
+        </defs>
+
+        <g clip-path="url(#vizClip)">
+          <!-- 背景与氛围 -->
+          <rect width="320" height="158" fill="url(#vizBg)"/>
+          <rect width="320" height="158" fill="url(#dotGrid)"/>
+          <circle cx="66" cy="79" r="80" fill="url(#warmGlow)"/>
+          <circle cx="260" cy="70" r="67" fill="url(#screenGlow)"/>
+          <path d="M0 139 H320" stroke="rgba(255,255,255,0.045)" stroke-width="1"/>
+          <circle cx="28" cy="25" r="1.1" fill="#ffd400" opacity="0.45"/>
+          <circle cx="39" cy="119" r="0.9" fill="#93c5fd" opacity="0.35"/>
+          <path d="M297 25v6M294 28h6" stroke="#ffd400" stroke-width="0.8" opacity="0.3"/>
+
+          <!-- 环形进度 -->
+          <g>
+            <circle cx="66" cy="79" r="55" fill="none" stroke="rgba(255,255,255,0.055)" stroke-width="1" stroke-dasharray="1 6"/>
+            <circle cx="66" cy="79" r="44" fill="none" stroke="#242c38" stroke-width="7"/>
+            <circle
+              class="ring-progress"
+              id="ringProgress"
+              cx="66"
+              cy="79"
+              r="44"
+              fill="none"
+              stroke="#ffd400"
+              stroke-width="7"
+              stroke-linecap="round"
+              stroke-dasharray="276.4602"
+              stroke-dashoffset="276.4602"
+              transform="rotate(-90 66 79)"
+            />
+            <circle cx="66" cy="79" r="34" fill="rgba(8, 12, 18, 0.72)" stroke="rgba(255,255,255,0.055)" stroke-width="1"/>
+            <text class="ring-percent" id="ringPercent" x="66" y="77" text-anchor="middle" dominant-baseline="central">0%</text>
+            <text class="ring-caption" x="66" y="94" text-anchor="middle">今日进度</text>
+          </g>
+
+          <!-- 地面与椅子 -->
+          <ellipse cx="224" cy="143" rx="82" ry="4.2" fill="#000000" opacity="0.26"/>
+          <g aria-hidden="true">
+            <rect x="127" y="62" width="35" height="50" rx="14" fill="url(#chairGrad)" stroke="#344050" stroke-width="0.7"/>
+            <rect x="139" y="104" width="25" height="4" rx="2" fill="#2b3542"/>
+            <path d="M145 108v19M158 108v19" stroke="#29323e" stroke-width="3" stroke-linecap="round"/>
+          </g>
+
+          <!-- 状态一：工作中 -->
+          <g class="scene scene-working" aria-hidden="true">
+            <g class="worker-bob">
+              <!-- 身体 -->
+              <path d="M147.5 104 C146 86 151.5 71 165 70 C178 69 184 83 184 104 Z" fill="url(#shirtGrad)"/>
+              <path d="M153 82 C157 86 158.5 90 158.5 95" stroke="#2563eb" stroke-width="1" fill="none" opacity="0.45"/>
+              <path d="M157 93 C162 97 170 98 178 94" stroke="#1d4ed8" stroke-width="1" fill="none" opacity="0.65"/>
+              <path d="M181 81 C184 87 185 95 183.5 103" stroke="#1d4ed8" stroke-width="1.4" fill="none" opacity="0.45"/>
+              <!-- 头 -->
+              <g>
+                <circle cx="165" cy="55" r="13.2" fill="#f2c7a6"/>
+                <path d="M151.8 53 C150.5 41.3 158 35.2 166.7 37 C175 38.7 178.7 45.7 177.5 53.6 C172.6 50.5 168.3 49.3 162.1 50.4 C157.5 51.2 154.5 52.3 151.8 53Z" fill="#2d2431"/>
+                <path d="M151.9 52.7 C149.7 56.1 150.2 61.3 152.1 64.6" stroke="#e4ae8a" stroke-width="1.2" fill="none"/>
+                <path d="M176.6 57.7 C178.1 58.4 178 60.6 176.7 61.2" fill="#e4ae8a"/>
+                <circle cx="171.2" cy="55.2" r="1.35" fill="#33241f"/>
+                <path d="M168.8 61.1 Q172 63.1 175.2 60.8" stroke="#a65f51" stroke-width="1" fill="none" stroke-linecap="round"/>
+                <circle cx="159.7" cy="61.2" r="2.1" fill="#ee9b86" opacity="0.28"/>
+                <path d="M170.4 52.3 c1.9 0 3.5 1.2 4 3" stroke="#3f3440" stroke-width="0.65" fill="none" opacity="0.7"/>
+              </g>
+              <!-- 敲键盘的手臂（动画） -->
+              <g class="typing-arm typing-arm-left">
+                <path d="M156 80 C164 90 178 96.5 192 98.3" stroke="#4b90ff" stroke-width="6.2" fill="none" stroke-linecap="round"/>
+                <circle cx="193.2" cy="98.4" r="3.2" fill="#f2c7a6"/>
+              </g>
+              <g class="typing-arm typing-arm-right">
+                <path d="M174 78.5 C184 81.5 196.5 89 205 95" stroke="#3b82f6" stroke-width="6.4" fill="none" stroke-linecap="round"/>
+                <circle cx="206.2" cy="95.3" r="3.3" fill="#f2c7a6"/>
+              </g>
+            </g>
+          </g>
+
+          <!-- 状态二：休息中 -->
+          <g class="scene scene-rest" aria-hidden="true">
+            <g class="worker-bob">
+              <path d="M147.5 104 C146 86 151.5 71 165 70 C178 69 184 83 184 104 Z" fill="url(#shirtGrad)"/>
+              <path d="M153 82 C157 86 158.5 90 158.5 95" stroke="#2563eb" stroke-width="1" fill="none" opacity="0.45"/>
+              <path d="M157 93 C162 97 170 98 178 94" stroke="#1d4ed8" stroke-width="1" fill="none" opacity="0.65"/>
+              <g transform="rotate(-4 165 55)">
+                <circle cx="165" cy="55" r="13.2" fill="#f2c7a6"/>
+                <path d="M151.8 53 C150.5 41.3 158 35.2 166.7 37 C175 38.7 178.7 45.7 177.5 53.6 C172.6 50.5 168.3 49.3 162.1 50.4 C157.5 51.2 154.5 52.3 151.8 53Z" fill="#2d2431"/>
+                <path d="M151.9 52.7 C149.7 56.1 150.2 61.3 152.1 64.6" stroke="#e4ae8a" stroke-width="1.2" fill="none"/>
+                <path d="M176.6 57.7 C178.1 58.4 178 60.6 176.7 61.2" fill="#e4ae8a"/>
+                <path d="M168.7 55.4 Q171 56.6 173.5 55.2" stroke="#5c403b" stroke-width="0.9" fill="none" stroke-linecap="round"/>
+                <path d="M168.9 61.2 Q172 62.9 175 60.6" stroke="#a65f51" stroke-width="1" fill="none" stroke-linecap="round"/>
+                <circle cx="159.7" cy="61.2" r="2.1" fill="#ee9b86" opacity="0.28"/>
+              </g>
+              <!-- 搭在桌沿的手臂 -->
+              <path d="M155 80 C162 90 174 96 187 99" stroke="#4b90ff" stroke-width="6" fill="none" stroke-linecap="round"/>
+              <circle cx="188" cy="99" r="3" fill="#f2c7a6"/>
+              <!-- 端咖啡的手臂与杯子 -->
+              <g class="coffee-hold">
+                <path d="M174 78 C184 79 192 83 196 89" stroke="#3b82f6" stroke-width="6.2" fill="none" stroke-linecap="round"/>
+                <circle cx="198" cy="91" r="3.1" fill="#f2c7a6"/>
+                <g>
+                  <path d="M188 79.5 H201 V90.5 C201 93 199 94.5 196.8 94.5 H192.2 C190 94.5 188 93 188 90.5 Z" fill="#f4f1e8" stroke="#cfc8b9" stroke-width="0.55"/>
+                  <path d="M201 82 C205.5 82 205.5 88 201 88" fill="none" stroke="#f4f1e8" stroke-width="1.5"/>
+                  <ellipse cx="194.5" cy="79.5" rx="6.5" ry="1.8" fill="#69452c"/>
+                  <ellipse cx="194.5" cy="79.3" rx="5" ry="1.1" fill="#9b6845" opacity="0.8"/>
+                  <path d="M190 83 V91" stroke="#ffffff" stroke-width="0.8" opacity="0.65"/>
+                  <path d="M203 79 C205 77 204 75 206 73" stroke="#e5e7eb" stroke-width="0.65" fill="none" opacity="0.4"/>
+                </g>
+                <g class="steam">
+                  <path d="M191 76 C189 72.5 192.5 71 191 67"/>
+                  <path d="M195.5 75.5 C193.5 71.5 197 69.5 195.5 65"/>
+                  <path d="M200 76 C198.5 73 201 71 200 68"/>
+                </g>
+              </g>
+            </g>
+          </g>
+
+          <!-- 状态三 / 四：睡觉（未开始或已下班） -->
+          <g class="scene scene-sleep" aria-hidden="true">
+            <g class="sleep-breathe">
+              <path d="M146 104 C144 88 151 74 165 73 C180 72 188 87 189 104 Z" fill="url(#shirtGrad)"/>
+              <path d="M152 82 C156 86 157.5 90 157.5 96" stroke="#2563eb" stroke-width="1" fill="none" opacity="0.4"/>
+              <path d="M153 98 C160 102 171 103 181 99" stroke="#1e40af" stroke-width="3.8" fill="none" stroke-linecap="round"/>
+              <!-- 趴在桌上的侧脸 -->
+              <g transform="rotate(9 191 95)">
+                <ellipse cx="191" cy="95" rx="14.2" ry="12.8" fill="#f2c7a6"/>
+                <path d="M178 92.5 C176.8 82 184.7 76.6 192.7 79 C201 81.4 204.5 88.7 202.5 97 C198 94.5 193.9 93.3 188.3 93.7 C184.3 94 181 94.4 178 92.5Z" fill="#2d2431"/>
+                <path d="M203.2 98.5 C201.8 101.4 199.3 103.4 196.3 104.1" stroke="#e4ae8a" stroke-width="1.1" fill="none"/>
+                <path d="M183.4 95.2 Q186 96.6 188.6 95.3" stroke="#5c403b" stroke-width="0.9" fill="none" stroke-linecap="round"/>
+                <path d="M184 101.2 Q187 102.8 190.2 100.9" stroke="#a65f51" stroke-width="0.9" fill="none" stroke-linecap="round"/>
+                <circle cx="198.8" cy="99.4" r="2" fill="#ee9b86" opacity="0.25"/>
+              </g>
+            </g>
+            <g class="zzz">
+              <text x="207" y="66" style="font-size:9px">z</text>
+              <text x="216" y="53" style="font-size:11px">Z</text>
+              <text x="227" y="39" style="font-size:13px">Z</text>
+            </g>
+          </g>
+
+          <!-- 桌子（后画以遮住身体下半部分） -->
+          <g aria-hidden="true">
+            <rect x="140" y="105" width="172" height="7" rx="3.5" fill="url(#deskGrad)"/>
+            <rect x="140" y="105" width="172" height="1.2" rx="0.6" fill="rgba(255,255,255,0.13)"/>
+            <rect x="147" y="112" width="5" height="30" rx="2.4" fill="#242d38"/>
+            <rect x="300" y="112" width="5" height="30" rx="2.4" fill="#242d38"/>
+            <rect x="180" y="99" width="49" height="8" rx="3.5" fill="#1e2631" stroke="#354050" stroke-width="0.45"/>
+            <g class="keyboard">
+              <rect x="183" y="98.2" width="44" height="7.2" rx="2.2" fill="#212b37" stroke="#3b4859" stroke-width="0.55"/>
+              <path d="M186 100.3 H194 M197 100.3 H205 M208 100.3 H216 M219 100.3 H224" stroke="#596980" stroke-width="0.55"/>
+              <path d="M187 102.9 H221" stroke="#4b5b70" stroke-width="0.55"/>
+            </g>
+            <rect x="306" y="92" width="8" height="13" rx="2" fill="#2a3542"/>
+            <path d="M307 92 C304 86 307 82 310 78 M312 92 C316 87 313 82 316 78" stroke="#4b7a73" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+          </g>
+
+          <!-- 显示器 -->
+          <g aria-hidden="true">
+            <rect x="232" y="60" width="13" height="39" rx="4" fill="#111923" opacity="0.8"/>
+            <rect x="225" y="44" width="78" height="51" rx="6" fill="#18212c" stroke="#3b4758" stroke-width="0.8"/>
+            <rect x="229" y="48" width="70" height="42" rx="3.4" fill="url(#screenFace)" stroke="#263548" stroke-width="0.5"/>
+            <circle cx="264" cy="46.2" r="0.8" fill="#4ade80" opacity="0.8"/>
+            <rect x="257" y="95" width="13" height="10" rx="1.5" fill="#2b3543"/>
+            <rect x="244" y="104" width="39" height="3" rx="1.5" fill="#333e4c"/>
+
+            <!-- 屏幕内容：写代码 -->
+            <g clip-path="url(#screenClip)">
+              <g class="screen-layer screen-code">
+                <g class="code-stream">
+                  <text x="233" y="57" fill="#7dd3fc" font-family="Consolas, monospace" font-size="4.3">const salary = 100;</text>
+                  <text x="233" y="64" fill="#94a3b8" font-family="Consolas, monospace" font-size="4.3">while (working) {</text>
+                  <text x="233" y="71" fill="#6ee7b7" font-family="Consolas, monospace" font-size="4.3">  earn(0.03);</text>
+                  <text x="233" y="78" fill="#fde68a" font-family="Consolas, monospace" font-size="4.3">  // almost there</text>
+                  <text x="233" y="85" fill="#94a3b8" font-family="Consolas, monospace" font-size="4.3">}</text>
+                  <text x="233" y="92" fill="#7dd3fc" font-family="Consolas, monospace" font-size="4.3">const salary = 100;</text>
+                  <text x="233" y="99" fill="#94a3b8" font-family="Consolas, monospace" font-size="4.3">while (working) {</text>
+                  <text x="233" y="106" fill="#6ee7b7" font-family="Consolas, monospace" font-size="4.3">  earn(0.03);</text>
+                  <text x="233" y="113" fill="#fde68a" font-family="Consolas, monospace" font-size="4.3">  // almost there</text>
+                  <text x="233" y="120" fill="#94a3b8" font-family="Consolas, monospace" font-size="4.3">}</text>
+                </g>
+                <rect class="blink-cursor" x="234" y="88" width="1.4" height="2.8" fill="#7dd3fc"/>
+                <text x="287" y="87" text-anchor="end" fill="#31506b" font-family="Consolas, monospace" font-size="4">LIVE</text>
+              </g>
+
+              <!-- 屏幕内容：休息 -->
+              <g class="screen-layer screen-break">
+                <circle cx="251" cy="66" r="10" fill="rgba(255, 212, 0, 0.06)" stroke="rgba(255, 212, 0, 0.18)" stroke-width="0.6"/>
+                <path d="M246 62 H254 V68 C254 70.4 252.4 72 250 72 C247.6 72 246 70.4 246 68 Z" fill="#ffd400" opacity="0.82"/>
+                <path d="M254 64 C257 64 257 68 254 68" fill="none" stroke="#ffd400" stroke-width="1" opacity="0.82"/>
+                <path d="M247.5 59 C246 57 248 56 246.5 54 M250 59 C248.5 57 250.5 56 249 54" stroke="#fde68a" stroke-width="0.65" fill="none" opacity="0.8"/>
+                <text x="264" y="65" fill="#ffd400" font-family="Consolas, monospace" font-size="5.2" font-weight="700">BREAK</text>
+                <text x="264" y="72" fill="#64748b" font-family="Consolas, monospace" font-size="3.7">recharge</text>
+                <text x="233" y="84" fill="#475569" font-family="Consolas, monospace" font-size="3.4">rest is part of the job.</text>
+              </g>
+
+              <!-- 屏幕内容：下班 / 未开始 -->
+              <g class="screen-layer screen-off">
+                <path d="M258 57.5 C252.5 58.8 250 64 252 68.8 C254 73.7 259.7 76 264.5 74.1 C260.7 73.4 257.6 69.8 257.5 65.5 C257.4 62.4 258.8 59.5 258 57.5Z" fill="#5d7292" opacity="0.65"/>
+                <text x="270" y="66" fill="#4c5c72" font-family="Consolas, monospace" font-size="4">OFFLINE</text>
+                <text x="270" y="73" fill="#3d4b5f" font-family="Consolas, monospace" font-size="3.4">sweet dreams</text>
+                <text x="233" y="84" fill="#354255" font-family="Consolas, monospace" font-size="3.4">see you tomorrow.</text>
+              </g>
+
+              <rect x="229" y="48" width="70" height="42" rx="3.4" fill="url(#screenGlare)"/>
+            </g>
+          </g>
+        </g>
+      </svg>
+
+      <div class="particles" id="particles" aria-hidden="true"></div>
+    </section>
+
+    <!-- 金额与累计时长 -->
+    <section class="earnings" aria-label="今日收入与累计时长">
+      <div class="earnings-head">
+        <span class="eyebrow">今日已赚</span>
+        <span class="rate-hint" id="rateHint" data-mode="normal">正常 ¥100.00 · 加班 ¥100.00</span>
+      </div>
+      <div class="amount" aria-label="今日已赚金额">
+        <span class="currency">¥</span><span id="amount">0.00</span>
+      </div>
+      <div class="metrics">
+        <div class="metric">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="1.8"/>
+            <path d="M12 7.3V12l3.1 2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+          <span>今日累计</span>
+          <strong id="worked">00:00:00</strong>
+        </div>
+        <span class="metric-divider" aria-hidden="true"></span>
+        <div class="metric">
+          <span>总工时</span>
+          <strong id="total">08:00:00</strong>
+        </div>
+      </div>
+    </section>
+
+    <!-- 今日时间轴 -->
+    <section class="timeline" aria-label="今日时间轴">
+      <div class="timeline-head">
+        <span class="eyebrow">今日时间轴</span>
+        <span class="timeline-summary" id="timelineSummary">2 段 · 8h 00m</span>
+      </div>
+      <div class="timeline-bar">
+        <div class="timeline-track" id="timelineTrack"></div>
+        <div class="now-cursor" id="nowCursor">
+          <span class="now-tip" id="nowTip">--:--:--</span>
+        </div>
+      </div>
+      <div class="timeline-scale" aria-hidden="true">
+        <span>00:00</span>
+        <span>06:00</span>
+        <span>12:00</span>
+        <span>18:00</span>
+        <span>24:00</span>
+      </div>
+    </section>
+
+    <!-- 可折叠配置面板 -->
+    <section class="config" id="config">
+      <button class="config-toggle" id="configToggle" type="button" aria-expanded="false" aria-controls="configBody">
+        <span class="config-title">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle cx="12" cy="12" r="3.2" stroke="currentColor" stroke-width="1.7"/>
+            <path d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.5-2.3 1a7 7 0 0 0-2-1.2L14.3 3h-4.1l-.4 2.6a7 7 0 0 0-2 1.2l-2.3-1-2 3.5 2 1.5A7 7 0 0 0 5 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.5 2.3-1a7 7 0 0 0 2 1.2l.4 2.6h4.1l.4-2.6a7 7 0 0 0 2-1.2l2.3 1 2-3.5-2-1.5c.1-.4.1-.8.1-1.2Z" stroke="currentColor" stroke-width="1.35" stroke-linejoin="round"/>
+          </svg>
+          <span>配置</span>
+          <span class="config-sub">薪资 · 计薪规则</span>
+        </span>
+        <svg class="chevron" width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="m7 10 5 5 5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+
+      <div class="config-body" id="configBody" hidden>
+        <div class="config-block">
+          <div class="rate-grid">
+            <div class="rate-card">
+              <label class="rate-card-label" for="normalRate">正常时薪</label>
+              <div class="rate-input-wrap">
+                <span>¥</span>
+                <input id="normalRate" type="number" min="0.01" step="0.01" inputmode="decimal" value="100.00" aria-label="正常工作时薪，元每小时" required>
+                <span>/时</span>
+              </div>
+            </div>
+            <div class="rate-card">
+              <label class="rate-card-label" for="overtimeRate">加班时薪</label>
+              <div class="rate-input-wrap">
+                <span>¥</span>
+                <input id="overtimeRate" type="number" min="0.01" step="0.01" inputmode="decimal" value="100.00" aria-label="加班时薪，元每小时" required>
+                <span>/时</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="config-block">
+          <div class="interval-head">
+            <span>默认计薪</span>
+            <span>未匹配时间段规则时使用</span>
+          </div>
+          <div class="segmented" id="defaultPayType" role="group" aria-label="默认计薪类型">
+            <button type="button" data-pay-type="normal" aria-pressed="true">正常时薪</button>
+            <button type="button" data-pay-type="overtime" aria-pressed="false">加班时薪</button>
+          </div>
+        </div>
+
+        <div class="config-block">
+          <div class="interval-head">
+            <span>全天加班</span>
+            <span id="weekdayOvertimeHint">优先于时间段规则</span>
+          </div>
+          <div class="weekday-chips" id="weekdayChips" role="group" aria-label="全天按加班时薪的星期">
+            <button type="button" class="weekday-chip" data-weekday="1" aria-pressed="false" aria-label="周一全天按加班时薪">周一</button>
+            <button type="button" class="weekday-chip" data-weekday="2" aria-pressed="false" aria-label="周二全天按加班时薪">周二</button>
+            <button type="button" class="weekday-chip" data-weekday="3" aria-pressed="false" aria-label="周三全天按加班时薪">周三</button>
+            <button type="button" class="weekday-chip" data-weekday="4" aria-pressed="false" aria-label="周四全天按加班时薪">周四</button>
+            <button type="button" class="weekday-chip" data-weekday="5" aria-pressed="false" aria-label="周五全天按加班时薪">周五</button>
+            <button type="button" class="weekday-chip" data-weekday="6" aria-pressed="true" aria-label="周六全天按加班时薪">周六</button>
+            <button type="button" class="weekday-chip" data-weekday="7" aria-pressed="true" aria-label="周日全天按加班时薪">周日</button>
+          </div>
+        </div>
+
+        <div class="config-block">
+          <div class="interval-head">
+            <span>计薪时间段</span>
+            <span id="payRulesHint">可多段拆分，不可重叠</span>
+          </div>
+          <div class="pay-rule-list" id="payRuleList"></div>
+          <button class="add-interval" id="addPayRule" type="button">＋ 添加计薪时间段</button>
+        </div>
+
+        <div class="config-block">
+          <div class="interval-head">
+            <span>工作区间</span>
+            <span>只统计这些时段内的工时</span>
+          </div>
+          <div class="interval-list" id="intervalList"></div>
+          <button class="add-interval" id="addInterval" type="button">＋ 添加工作区间</button>
+        </div>
+
+        <p class="form-error" id="configError" role="alert"></p>
+
+        <div class="config-actions">
+          <button class="btn btn-primary" id="saveBtn" type="button">保存配置</button>
+          <button class="btn btn-ghost" id="resetBtn" type="button">恢复默认</button>
+        </div>
+        <p class="config-hint">配置仅保存在本机 · 跨天请拆成多段</p>
+      </div>
+    </section>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </main>
+
+  <!-- 时间滚轮选择器：固定定位，避免被卡片 overflow 裁剪 -->
+  <div class="time-picker-backdrop" id="timePickerBackdrop" hidden></div>
+  <div class="time-picker" id="timePicker" role="dialog" aria-modal="true" aria-labelledby="timePickerTitle" hidden>
+    <div class="tp-head">
+      <div>
+        <div class="tp-kicker" id="timePickerTitle">选择时间</div>
+        <div class="tp-preview" id="timePickerPreview">09:00</div>
+      </div>
+      <div class="tp-mode-hint">滚轮一格一项<br>停止后自动吸附</div>
+    </div>
+    <div class="tp-body">
+      <div class="tp-column">
+        <div class="tp-col-label">时</div>
+        <div class="tp-viewport" id="timePickerHour" tabindex="0" role="listbox" aria-label="小时"></div>
+      </div>
+      <div class="tp-column">
+        <div class="tp-col-label">分</div>
+        <div class="tp-viewport" id="timePickerMinute" tabindex="0" role="listbox" aria-label="分钟"></div>
+      </div>
+    </div>
+    <div class="tp-footer">
+      <span class="tp-hint">滚轮 · ↑↓ · 拖动选择</span>
+      <button class="tp-done" id="timePickerDone" type="button">完成</button>
+    </div>
+  </div>
+
+  <script>
+    (() => {
+      'use strict';
+
+      /* ============================================================
+       * 常量与状态
+       * ============================================================ */
+      const STORAGE_KEY = 'work-encourager/config-v2';
+      const LEGACY_STORAGE_KEY = 'work-encourager/config-v1';
+      const DAY_SECONDS = 24 * 60 * 60;
+      const RING_RADIUS = 44;
+      const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
+      const PAY_TYPES = new Set(['normal', 'overtime']);
+      const WEEKDAYS = [
+        { value: 1, label: '周一' },
+        { value: 2, label: '周二' },
+        { value: 3, label: '周三' },
+        { value: 4, label: '周四' },
+        { value: 5, label: '周五' },
+        { value: 6, label: '周六' },
+        { value: 7, label: '周日' }
+      ];
+
+      const DEFAULT_CONFIG = {
+        normalRate: 100,
+        overtimeRate: 100,
+        defaultPayType: 'normal',
+        weekdayOvertime: [6, 7],
+        payRules: [],
+        workIntervals: [
+          { start: '09:00', end: '12:00' },
+          { start: '13:00', end: '18:00' }
+        ]
+      };
+
+      // 时间滚轮可调参数：也可在运行时调用 window.TimeWheelPicker.configure({...}) 修改
+      const TIME_WHEEL_CONFIG = {
+        wheelStep: 1,             // 鼠标滚轮每一格移动的选项数（默认 1）
+        animationMs: 160,         // 吸附动画时长，越小越快
+        debounceMs: 45,           // 滚动停止后多久执行最终吸附
+        mouseNotchPx: 100,        // 鼠标滚轮一格的像素基准值
+        touchpadThresholdPx: 36,  // 触控板累计多少像素移动一项
+        loop: false,              // 到达顶/底是否循环
+        snap: true,               // 是否吸附到最近选项
+        itemHeight: 32,           // 每个时间选项高度
+        visibleItems: 5,          // 滚轮可视选项数
+        keyboardStep: 1           // 键盘上下键每次移动的选项数
+      };
+
+      const STATUS_META = {
+        idle: {
+          label: '未开始',
+          mood: '今天还没开工，先给自己打个气。',
+          state: 'idle'
+        },
+        working: {
+          label: '工作中',
+          mood: '键盘一响，余额上涨。',
+          state: 'working'
+        },
+        rest: {
+          label: '休息中',
+          mood: '休息不是偷懒，是给下一段蓄力。',
+          state: 'rest'
+        },
+        done: {
+          label: '已下班',
+          mood: '今天收工啦，辛苦了，明天继续。',
+          state: 'done'
+        }
+      };
+
+      const els = {
+        dateLabel: document.getElementById('dateLabel'),
+        dayFlag: document.getElementById('dayFlag'),
+        clock: document.getElementById('clock'),
+        statusBadge: document.getElementById('statusBadge'),
+        statusText: document.getElementById('statusText'),
+        moodLine: document.getElementById('moodLine'),
+        viz: document.getElementById('viz'),
+        ringProgress: document.getElementById('ringProgress'),
+        ringPercent: document.getElementById('ringPercent'),
+        particles: document.getElementById('particles'),
+        amount: document.getElementById('amount'),
+        rateHint: document.getElementById('rateHint'),
+        worked: document.getElementById('worked'),
+        total: document.getElementById('total'),
+        timelineTrack: document.getElementById('timelineTrack'),
+        timelineSummary: document.getElementById('timelineSummary'),
+        nowCursor: document.getElementById('nowCursor'),
+        nowTip: document.getElementById('nowTip'),
+        config: document.getElementById('config'),
+        configToggle: document.getElementById('configToggle'),
+        configBody: document.getElementById('configBody'),
+        normalRate: document.getElementById('normalRate'),
+        overtimeRate: document.getElementById('overtimeRate'),
+        defaultPayType: document.getElementById('defaultPayType'),
+        weekdayChips: document.getElementById('weekdayChips'),
+        weekdayOvertimeHint: document.getElementById('weekdayOvertimeHint'),
+        payRulesHint: document.getElementById('payRulesHint'),
+        payRuleList: document.getElementById('payRuleList'),
+        addPayRule: document.getElementById('addPayRule'),
+        intervalList: document.getElementById('intervalList'),
+        addInterval: document.getElementById('addInterval'),
+        configError: document.getElementById('configError'),
+        saveBtn: document.getElementById('saveBtn'),
+        resetBtn: document.getElementById('resetBtn'),
+        toast: document.getElementById('toast'),
+        dragZone: document.getElementById('dragZone'),
+        windowControls: document.getElementById('windowControls'),
+        pinBtn: document.getElementById('pinBtn'),
+        minimizeBtn: document.getElementById('minimizeBtn'),
+        closeBtn: document.getElementById('closeBtn'),
+        timePicker: document.getElementById('timePicker'),
+        timePickerBackdrop: document.getElementById('timePickerBackdrop'),
+        timePickerTitle: document.getElementById('timePickerTitle'),
+        timePickerPreview: document.getElementById('timePickerPreview'),
+        timePickerDone: document.getElementById('timePickerDone'),
+        timePickerHour: document.getElementById('timePickerHour'),
+        timePickerMinute: document.getElementById('timePickerMinute')
+      };
+
+      let config = loadConfig();
+      let timelineSegments = [];
+      let lastDayKey = '';
+      let lastRawWage = null;
+      let pendingWage = 0;
+      let particleSeq = 0;
+      let clockTimer = null;
+      let toastTimer = null;
+      let rowUid = 0;
+      let desktopBridgeStarted = false;
+      const timePickerState = {
+        open: false,
+        trigger: null,
+        activeColumn: 'hour',
+        built: false,
+        columns: {
+          hour: {
+            index: 0,
+            count: 24,
+            accumulator: 0,
+            settleTimer: null,
+            items: [],
+            viewport: null,
+            track: null,
+            pointer: null
+          },
+          minute: {
+            index: 0,
+            count: 60,
+            accumulator: 0,
+            settleTimer: null,
+            items: [],
+            viewport: null,
+            track: null,
+            pointer: null
+          }
+        }
+      };
+
+      /* ============================================================
+       * 小工具：时间、金额、DOM
+       * ============================================================ */
+      function pad2(value) {
+        return String(value).padStart(2, '0');
+      }
+
+      function parseTime(value) {
+        if (typeof value !== 'string' || !/^\d{2}:\d{2}$/.test(value)) return null;
+        const parts = value.split(':');
+        const hour = Number(parts[0]);
+        const minute = Number(parts[1]);
+        if (!Number.isInteger(hour) || !Number.isInteger(minute)) return null;
+        if (hour < 0 || hour > 23 || minute < 0 || minute > 59) return null;
+        return hour * 3600 + minute * 60;
+      }
+
+      function secondsToTime(seconds) {
+        const safe = Math.max(0, Math.min(DAY_SECONDS - 60, Math.floor(seconds / 60) * 60));
+        const hour = Math.floor(safe / 3600);
+        const minute = Math.floor((safe % 3600) / 60);
+        return pad2(hour) + ':' + pad2(minute);
+      }
+
+      function formatDuration(totalSeconds) {
+        const safe = Math.max(0, Math.floor(totalSeconds));
+        const hour = Math.floor(safe / 3600);
+        const minute = Math.floor((safe % 3600) / 60);
+        const second = safe % 60;
+        return pad2(hour) + ':' + pad2(minute) + ':' + pad2(second);
+      }
+
+      function formatShortDuration(totalSeconds) {
+        const safe = Math.max(0, Math.floor(totalSeconds));
+        const hour = Math.floor(safe / 3600);
+        const minute = Math.floor((safe % 3600) / 60);
+        return hour + 'h ' + pad2(minute) + 'm';
+      }
+
+      function formatPercent(progress) {
+        const p = Math.max(0, Math.min(1, progress)) * 100;
+        if (p >= 99.995) return '100%';
+        if (p === 0) return '0%';
+        return p.toFixed(2).replace(/\.?0+$/, '') + '%';
+      }
+
+      function roundMoney(value) {
+        return Math.round((value + Number.EPSILON) * 100) / 100;
+      }
+
+      function setText(element, text) {
+        if (element.textContent !== text) element.textContent = text;
+      }
+
+      function cloneDefaultConfig() {
+        return {
+          normalRate: DEFAULT_CONFIG.normalRate,
+          overtimeRate: DEFAULT_CONFIG.overtimeRate,
+          defaultPayType: DEFAULT_CONFIG.defaultPayType,
+          weekdayOvertime: DEFAULT_CONFIG.weekdayOvertime.slice(),
+          payRules: DEFAULT_CONFIG.payRules.map((item) => ({ start: item.start, end: item.end, type: item.type })),
+          workIntervals: DEFAULT_CONFIG.workIntervals.map((item) => ({ start: item.start, end: item.end }))
+        };
+      }
+
+      function dayKeyOf(date) {
+        return date.getFullYear() + '-' + pad2(date.getMonth() + 1) + '-' + pad2(date.getDate());
+      }
+
+      function weekdayLabel(date) {
+        return ['周日', '周一', '周二', '周三', '周四', '周五', '周六'][date.getDay()];
+      }
+
+      function isoWeekday(date) {
+        return date.getDay() === 0 ? 7 : date.getDay();
+      }
+
+      function isoWeekdayLabel(day) {
+        const weekday = WEEKDAYS.find((item) => item.value === day);
+        return weekday ? weekday.label : '';
+      }
+
+      function normalizeRate(value) {
+        const rate = Number(value);
+        if (!Number.isFinite(rate) || rate <= 0) return null;
+        if (Math.abs(rate * 100 - Math.round(rate * 100)) > 1e-7) return null;
+        return Math.round(rate * 100) / 100;
+      }
+
+      /* ============================================================
+       * 配置读取 / 保存 / 清洗
+       * ============================================================ */
+      function sanitizeWorkIntervals(raw) {
+        if (!Array.isArray(raw) || raw.length === 0) return null;
+        const intervals = [];
+
+        for (const item of raw) {
+          if (!item || typeof item !== 'object') return null;
+          const start = parseTime(item.start);
+          const end = parseTime(item.end);
+          if (start === null || end === null || end <= start) return null;
+          intervals.push({ start, end });
+        }
+
+        intervals.sort((a, b) => a.start - b.start);
+        for (let i = 1; i < intervals.length; i += 1) {
+          if (intervals[i].start < intervals[i - 1].end) return null;
+        }
+
+        return intervals.map((item) => ({
+          start: secondsToTime(item.start),
+          end: secondsToTime(item.end)
+        }));
+      }
+
+      function sanitizePayRules(raw) {
+        if (raw === undefined) return [];
+        if (!Array.isArray(raw)) return null;
+        const rules = [];
+
+        for (const item of raw) {
+          if (!item || typeof item !== 'object') return null;
+          const start = parseTime(item.start);
+          const end = parseTime(item.end);
+          const type = item.type;
+          if (start === null || end === null || end <= start || !PAY_TYPES.has(type)) return null;
+          rules.push({ start, end, type });
+        }
+
+        rules.sort((a, b) => a.start - b.start);
+        for (let i = 1; i < rules.length; i += 1) {
+          if (rules[i].start < rules[i - 1].end) return null;
+        }
+
+        return rules.map((item) => ({
+          start: secondsToTime(item.start),
+          end: secondsToTime(item.end),
+          type: item.type
+        }));
+      }
+
+      function sanitizeWeekdayOvertime(raw) {
+        if (raw === undefined) return DEFAULT_CONFIG.weekdayOvertime.slice();
+        if (!Array.isArray(raw)) return null;
+        const selected = new Set();
+        for (const value of raw) {
+          const day = Number(value);
+          if (!Number.isInteger(day) || day < 1 || day > 7) return null;
+          selected.add(day);
+        }
+        return Array.from(selected).sort((a, b) => a - b);
+      }
+
+      function sanitizeConfig(value) {
+        if (!value || typeof value !== 'object') return null;
+
+        const normalRate = normalizeRate(value.normalRate !== undefined ? value.normalRate : value.rate);
+        const overtimeRate = normalizeRate(
+          value.overtimeRate !== undefined
+            ? value.overtimeRate
+            : (value.normalRate !== undefined ? value.normalRate : value.rate)
+        );
+        if (normalRate === null || overtimeRate === null) return null;
+
+        const workIntervals = sanitizeWorkIntervals(
+          value.workIntervals !== undefined ? value.workIntervals : value.intervals
+        );
+        if (!workIntervals) return null;
+
+        const payRules = sanitizePayRules(value.payRules);
+        if (!payRules) return null;
+
+        const weekdayOvertime = sanitizeWeekdayOvertime(value.weekdayOvertime);
+        if (!weekdayOvertime) return null;
+
+        return {
+          normalRate,
+          overtimeRate,
+          defaultPayType: PAY_TYPES.has(value.defaultPayType) ? value.defaultPayType : 'normal',
+          weekdayOvertime,
+          payRules,
+          workIntervals
+        };
+      }
+
+      function loadConfig() {
+        try {
+          let raw = localStorage.getItem(STORAGE_KEY);
+          if (!raw) raw = localStorage.getItem(LEGACY_STORAGE_KEY);
+          if (!raw) return cloneDefaultConfig();
+
+          const cleaned = sanitizeConfig(JSON.parse(raw));
+          if (!cleaned) return cloneDefaultConfig();
+
+          // 旧版单时薪配置迁移后，顺手写入新键，之后不再重复迁移
+          try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify({ version: 2, ...cleaned }));
+          } catch (error) {
+            // 忽略写入失败，内存中的配置仍然可用
+          }
+          return cleaned;
+        } catch (error) {
+          return cloneDefaultConfig();
+        }
+      }
+
+      function persistConfig() {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify({
+            version: 2,
+            normalRate: config.normalRate,
+            overtimeRate: config.overtimeRate,
+            defaultPayType: config.defaultPayType,
+            weekdayOvertime: config.weekdayOvertime,
+            payRules: config.payRules,
+            workIntervals: config.workIntervals
+          }));
+          return true;
+        } catch (error) {
+          return false;
+        }
+      }
+
+      /* ============================================================
+       * 桌面挂件桥接（pywebview）
+       * ============================================================ */
+      function getBridgeApi() {
+        if (window.pywebview && window.pywebview.api) return window.pywebview.api;
+        return null;
+      }
+
+      function setPinState(onTop) {
+        if (!els.pinBtn) return;
+        els.pinBtn.classList.toggle('is-active', Boolean(onTop));
+        els.pinBtn.setAttribute('aria-pressed', String(Boolean(onTop)));
+        els.pinBtn.title = onTop ? '取消置顶' : '置顶窗口';
+        els.pinBtn.setAttribute('aria-label', els.pinBtn.title);
+      }
+
+      function measureWindowHeight() {
+        const card = document.querySelector('.card');
+        if (!card) return null;
+        const bodyStyle = window.getComputedStyle(document.body);
+        const verticalPadding = (parseFloat(bodyStyle.paddingTop) || 0)
+          + (parseFloat(bodyStyle.paddingBottom) || 0);
+        return Math.ceil(card.getBoundingClientRect().height + verticalPadding);
+      }
+
+      function requestWindowResize(expanded) {
+        const api = getBridgeApi();
+        if (!api || !document.body.classList.contains('is-desktop')) return;
+        api.set_config_open(Boolean(expanded), measureWindowHeight()).catch((error) => {
+          console.warn('窗口尺寸调整失败', error);
+        });
+      }
+
+      function syncConfigWindowHeight() {
+        if (!getBridgeApi() || !document.body.classList.contains('is-desktop')) return;
+        if (els.configBody.hidden) return;
+        requestWindowResize(true);
+      }
+
+      async function saveConfigToBridge() {
+        const api = getBridgeApi();
+        if (!api) return true;
+        try {
+          return (await api.save_config(config)) !== false;
+        } catch (error) {
+          console.warn('配置写入失败', error);
+          return false;
+        }
+      }
+
+      async function handleDesktopReady() {
+        if (desktopBridgeStarted) return;
+        const api = getBridgeApi();
+        if (!api) return;
+        desktopBridgeStarted = true;
+        document.body.classList.add('is-desktop');
+
+        try {
+          const state = await api.get_ui_state();
+          setPinState(Boolean(state && state.on_top));
+
+          const remoteConfig = await api.load_config();
+          const cleaned = remoteConfig ? sanitizeConfig(remoteConfig) : null;
+          if (cleaned) {
+            config = cleaned;
+            renderForm();
+            rebuildTimeline();
+            lastRawWage = null;
+            pendingWage = 0;
+            tick();
+            // 将旧版配置或缺失字段规范化后写回
+            await api.save_config(config);
+          } else {
+            // 第一次运行或配置文件损坏时，把当前默认配置写入本地文件
+            await api.save_config(config);
+          }
+
+          await api.set_config_open(!els.configBody.hidden, measureWindowHeight());
+        } catch (error) {
+          console.warn('桌面桥接初始化失败', error);
+        }
+      }
+
+      function bindDesktopBridge() {
+        if (getBridgeApi()) {
+          handleDesktopReady();
+          return;
+        }
+        window.addEventListener('pywebviewready', handleDesktopReady, { once: true });
+      }
+
+      /* ============================================================
+       * 核心计算：只统计工作区间与当前时刻的重叠部分
+       * ============================================================ */
+      function computeStats(nowSeconds, currentConfig, weekday) {
+        let total = 0;
+        let worked = 0;
+        let normalSeconds = 0;
+        let overtimeSeconds = 0;
+        let activeIndex = -1;
+
+        const workIntervals = currentConfig.workIntervals;
+        const isAllDayOvertime = currentConfig.weekdayOvertime.includes(weekday);
+        const payRules = currentConfig.payRules
+          .map((rule) => ({
+            start: parseTime(rule.start),
+            end: parseTime(rule.end),
+            type: rule.type
+          }))
+          .filter((rule) => rule.start !== null && rule.end !== null && rule.end > rule.start)
+          .sort((a, b) => a.start - b.start);
+
+        function addPaidSeconds(type, seconds) {
+          if (seconds <= 0) return;
+          if (type === 'overtime') overtimeSeconds += seconds;
+          else normalSeconds += seconds;
+        }
+
+        for (let i = 0; i < workIntervals.length; i += 1) {
+          const start = parseTime(workIntervals[i].start);
+          const end = parseTime(workIntervals[i].end);
+          if (start === null || end === null) continue;
+
+          total += end - start;
+
+          if (nowSeconds > start) {
+            const segmentEnd = Math.min(nowSeconds, end);
+            const segmentSeconds = segmentEnd - start;
+            worked += segmentSeconds;
+
+            if (isAllDayOvertime) {
+              overtimeSeconds += segmentSeconds;
+            } else {
+              let cursor = start;
+
+              for (const rule of payRules) {
+                if (rule.end <= start) continue;
+                if (rule.start >= segmentEnd) break;
+
+                const overlapStart = Math.max(cursor, rule.start);
+                const overlapEnd = Math.min(segmentEnd, rule.end);
+
+                // 规则之前没有覆盖的间隙，使用默认计薪类型
+                if (overlapStart > cursor) {
+                  addPaidSeconds(currentConfig.defaultPayType, overlapStart - cursor);
+                }
+
+                if (overlapEnd > overlapStart) {
+                  addPaidSeconds(rule.type, overlapEnd - overlapStart);
+                  cursor = overlapEnd;
+                } else {
+                  cursor = Math.max(cursor, overlapStart);
+                }
+              }
+
+              if (cursor < segmentEnd) {
+                addPaidSeconds(currentConfig.defaultPayType, segmentEnd - cursor);
+              }
+            }
+          }
+
+          if (nowSeconds >= start && nowSeconds < end) {
+            activeIndex = i;
+          }
+        }
+
+        let status = 'idle';
+        if (workIntervals.length > 0) {
+          const firstStart = parseTime(workIntervals[0].start);
+          const lastEnd = parseTime(workIntervals[workIntervals.length - 1].end);
+
+          if (firstStart !== null && lastEnd !== null) {
+            if (nowSeconds < firstStart) {
+              status = 'idle';
+            } else if (nowSeconds >= lastEnd) {
+              status = 'done';
+            } else if (activeIndex !== -1) {
+              status = 'working';
+            } else {
+              status = 'rest';
+            }
+          }
+        }
+
+        const progress = total > 0 ? Math.max(0, Math.min(1, worked / total)) : 0;
+        const rawWage = (normalSeconds / 3600) * currentConfig.normalRate
+          + (overtimeSeconds / 3600) * currentConfig.overtimeRate;
+
+        return {
+          total,
+          worked: Math.max(0, Math.min(DAY_SECONDS, worked)),
+          progress,
+          normalSeconds,
+          overtimeSeconds,
+          isAllDayOvertime,
+          rawWage,
+          wage: roundMoney(rawWage),
+          status,
+          activeIndex,
+          normalRate: currentConfig.normalRate,
+          overtimeRate: currentConfig.overtimeRate
+        };
+      }
+
+      /* ============================================================
+       * 页面渲染
+       * ============================================================ */
+      function updateDate(date) {
+        setText(els.dateLabel, (date.getMonth() + 1) + '月' + date.getDate() + '日 ' + weekdayLabel(date));
+      }
+
+      function updateDayContext(date) {
+        const day = isoWeekday(date);
+        const dayName = isoWeekdayLabel(day);
+        const isOvertimeDay = config.weekdayOvertime.includes(day);
+
+        if (els.dayFlag) {
+          els.dayFlag.hidden = !isOvertimeDay;
+          els.dayFlag.title = isOvertimeDay ? '今天' + dayName + '，全天按加班时薪计算' : '';
+        }
+
+        if (els.weekdayOvertimeHint) {
+          setText(els.weekdayOvertimeHint, isOvertimeDay ? '今日' + dayName + ' · 已生效' : '优先于时间段规则');
+          els.weekdayOvertimeHint.classList.toggle('is-warning-highlight', isOvertimeDay);
+          els.weekdayOvertimeHint.title = isOvertimeDay
+            ? '今天' + dayName + '已勾选全天加班，所有工时按加班时薪计算。如需按时间段规则，请取消勾选今天并保存。'
+            : '勾选某天后，该天所有工时优先按加班时薪计算。';
+        }
+
+        if (els.payRulesHint) {
+          setText(els.payRulesHint, isOvertimeDay ? '今日被全天加班覆盖' : '可多段拆分，不可重叠');
+          els.payRulesHint.classList.toggle('is-warning-highlight', isOvertimeDay);
+          els.payRulesHint.title = isOvertimeDay
+            ? '今天已启用全天加班，以下时间段规则今天不参与计薪。取消勾选今天（如周六）并保存后即可按时间段规则计算。'
+            : '';
+        }
+      }
+
+      function updateStatus(status) {
+        const meta = STATUS_META[status] || STATUS_META.idle;
+        if (els.viz.dataset.state !== meta.state) {
+          els.viz.dataset.state = meta.state;
+          els.statusBadge.dataset.state = meta.state;
+          setText(els.statusText, meta.label);
+          setText(els.moodLine, meta.mood);
+        }
+      }
+
+      function updateRing(stats) {
+        const offset = RING_CIRCUMFERENCE * (1 - stats.progress);
+        els.ringProgress.style.strokeDashoffset = String(offset);
+
+        const hue = (46 + stats.progress * 102).toFixed(1);
+        const color = 'hsl(' + hue + ' 92% 58%)';
+        if (els.ringProgress.dataset.ringColor !== color) {
+          els.ringProgress.dataset.ringColor = color;
+          els.ringProgress.style.stroke = color;
+        }
+
+        const percentText = formatPercent(stats.progress);
+        setText(els.ringPercent, percentText);
+        els.ringPercent.setAttribute('font-size', percentText.length > 5 ? '17.5' : '21');
+      }
+
+      function updateEarnings(stats, weekday) {
+        setText(els.amount, stats.wage.toFixed(2));
+
+        const dayName = isoWeekdayLabel(weekday);
+        const normalRateText = config.normalRate.toFixed(2);
+        const overtimeRateText = config.overtimeRate.toFixed(2);
+        const hasNormal = stats.normalSeconds > 0.001;
+        const hasOvertime = stats.overtimeSeconds > 0.001;
+        let mode = 'normal';
+        let label;
+
+        if (stats.isAllDayOvertime) {
+          mode = 'overtime';
+          label = dayName + '全天加班 · ¥' + overtimeRateText + '/时';
+        } else if (hasNormal && hasOvertime) {
+          mode = 'mixed';
+          label = '正常/加班混合 · ¥' + normalRateText + '/' + overtimeRateText;
+        } else if (hasOvertime) {
+          mode = 'overtime';
+          label = '加班计薪 · ¥' + overtimeRateText + '/时';
+        } else if (hasNormal) {
+          label = '正常计薪 · ¥' + normalRateText + '/时';
+        } else {
+          label = '正常 ¥' + normalRateText + ' · 加班 ¥' + overtimeRateText;
+        }
+
+        setText(els.rateHint, label);
+        els.rateHint.dataset.mode = mode;
+        els.rateHint.title = [
+          '正常时薪 ¥' + normalRateText + ' / 时；加班时薪 ¥' + overtimeRateText + ' / 时',
+          stats.isAllDayOvertime
+            ? '今天' + dayName + '是全天加班日，所有工时优先按加班时薪计算。'
+            : '按时间段规则和默认计薪类型计算。',
+          '已计薪：正常 ' + formatDuration(stats.normalSeconds) + ' × ¥' + normalRateText
+            + '；加班 ' + formatDuration(stats.overtimeSeconds) + ' × ¥' + overtimeRateText
+        ].join('\n');
+
+        setText(els.worked, formatDuration(stats.worked));
+        setText(els.total, formatDuration(stats.total));
+      }
+
+      function updateTimeline(stats, nowSeconds) {
+        for (const segment of timelineSegments) {
+          const start = segment.start;
+          const end = segment.end;
+          const state = nowSeconds < start ? 'future' : (nowSeconds >= end ? 'done' : 'active');
+          if (segment.el.dataset.state !== state) segment.el.dataset.state = state;
+
+          const ratio = Math.max(0, Math.min(1, (nowSeconds - start) / (end - start)));
+          segment.fill.style.width = (ratio * 100).toFixed(3) + '%';
+        }
+
+        const timePercent = (nowSeconds / DAY_SECONDS) * 100;
+        els.nowCursor.style.left = timePercent.toFixed(4) + '%';
+        els.nowCursor.dataset.edge = timePercent < 6 ? 'start' : (timePercent > 94 ? 'end' : '');
+        setText(els.nowTip, formatClock(nowSeconds));
+      }
+
+      function formatClock(secondsFromMidnight) {
+        const safe = ((secondsFromMidnight % DAY_SECONDS) + DAY_SECONDS) % DAY_SECONDS;
+        const hour = Math.floor(safe / 3600);
+        const minute = Math.floor((safe % 3600) / 60);
+        const second = Math.floor(safe % 60);
+        return pad2(hour) + ':' + pad2(minute) + ':' + pad2(second);
+      }
+
+      function updateState(stats, now) {
+        const meta = STATUS_META[stats.status] || STATUS_META.idle;
+        if (els.viz.dataset.state !== meta.state) {
+          updateStatus(stats.status);
+          // 状态切换时重置累计触发器，避免跨状态误飘粒子
+          lastRawWage = stats.rawWage;
+          pendingWage = 0;
+        }
+
+        const hour = now.getHours();
+        const minute = now.getMinutes();
+        const second = now.getSeconds();
+        setText(els.clock, pad2(hour) + ':' + pad2(minute) + ':' + pad2(second));
+        updateDate(now);
+        updateDayContext(now);
+      }
+
+      /* ============================================================
+       * 主循环
+       * ============================================================ */
+      function tick() {
+        const now = new Date();
+        const nowSeconds = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+        const weekday = isoWeekday(now);
+        const stats = computeStats(nowSeconds, config, weekday);
+        const currentDayKey = dayKeyOf(now);
+
+        // 跨天时清空一天的累计与粒子状态
+        if (lastDayKey && lastDayKey !== currentDayKey) {
+          lastRawWage = null;
+          pendingWage = 0;
+          lastDayKey = currentDayKey;
+        } else if (!lastDayKey) {
+          lastDayKey = currentDayKey;
+        }
+
+        updateState(stats, now);
+        updateRing(stats);
+        updateEarnings(stats, weekday);
+        updateTimeline(stats, nowSeconds);
+
+        // 金额增长时生成一个轻量粒子，1 秒内自动移除
+        const isWorking = stats.status === 'working';
+        if (lastRawWage !== null && stats.rawWage > lastRawWage && isWorking) {
+          pendingWage += stats.rawWage - lastRawWage;
+          if (pendingWage >= 0.01) {
+            spawnEarningParticle(pendingWage);
+            pendingWage = 0;
+          }
+        } else if (!isWorking) {
+          pendingWage = 0;
+        }
+        lastRawWage = stats.rawWage;
+      }
+
+      function scheduleNextTick() {
+        window.clearTimeout(clockTimer);
+        const delay = 1000 - (Date.now() % 1000) + 20;
+        clockTimer = window.setTimeout(() => {
+          tick();
+          scheduleNextTick();
+        }, delay);
+      }
+
+      /* ============================================================
+       * 粒子
+       * ============================================================ */
+      function spawnEarningParticle(amount) {
+        if (!els.particles) return;
+        while (els.particles.children.length >= 4) {
+          els.particles.firstElementChild.remove();
+        }
+
+        particleSeq += 1;
+        const useCoin = particleSeq % 3 === 0;
+        const node = document.createElement('span');
+        const drift = (Math.random() * 24 - 8).toFixed(1) + 'px';
+
+        if (useCoin) {
+          node.className = 'particle coin';
+          node.textContent = '¥';
+          node.style.left = (49 + Math.random() * 29).toFixed(1) + '%';
+          node.style.top = (25 + Math.random() * 20).toFixed(1) + '%';
+          node.style.setProperty('--drift', drift);
+        } else {
+          node.className = 'particle money';
+          node.textContent = '+¥' + amount.toFixed(2);
+          node.style.left = (44 + Math.random() * 27).toFixed(1) + '%';
+          node.style.top = (44 + Math.random() * 13).toFixed(1) + '%';
+          node.style.setProperty('--drift', drift);
+        }
+
+        els.particles.appendChild(node);
+        window.setTimeout(() => node.remove(), 1000);
+      }
+
+      /* ============================================================
+       * 时间轴构建与配置表单
+       * ============================================================ */
+      function rebuildTimeline() {
+        els.timelineTrack.replaceChildren();
+        timelineSegments = [];
+        let total = 0;
+
+        for (const interval of config.workIntervals) {
+          const start = parseTime(interval.start);
+          const end = parseTime(interval.end);
+          if (start === null || end === null) continue;
+          total += end - start;
+
+          const segment = document.createElement('div');
+          segment.className = 'tl-seg';
+          segment.style.left = (start / DAY_SECONDS * 100).toFixed(4) + '%';
+          segment.style.width = ((end - start) / DAY_SECONDS * 100).toFixed(4) + '%';
+          segment.title = interval.start + '–' + interval.end;
+
+          const fill = document.createElement('span');
+          fill.className = 'tl-fill';
+          segment.appendChild(fill);
+          els.timelineTrack.appendChild(segment);
+
+          timelineSegments.push({ el: segment, fill, start, end });
+        }
+
+        setText(els.timelineSummary, config.workIntervals.length + ' 段 · ' + formatShortDuration(total));
+      }
+
+      function nextIntervalDraft() {
+        const rows = getIntervalRows();
+        let lastEnd = 9 * 3600;
+        if (rows.length > 0) {
+          const endValue = rows[rows.length - 1].querySelector('[data-role="end"]').value;
+          const parsed = parseTime(endValue);
+          if (parsed !== null) lastEnd = parsed;
+        }
+
+        if (lastEnd >= 23 * 3600) return { start: '', end: '' };
+        const end = Math.min(lastEnd + 3600, DAY_SECONDS - 60);
+        return { start: secondsToTime(lastEnd), end: secondsToTime(end) };
+      }
+
+      function nextPayRuleDraft() {
+        const rows = getPayRuleRows();
+        let lastEnd = 12 * 3600;
+        if (rows.length > 0) {
+          const endValue = rows[rows.length - 1].querySelector('[data-role="rule-end"]').value;
+          const parsed = parseTime(endValue);
+          if (parsed !== null) lastEnd = parsed;
+        }
+
+        if (lastEnd >= 23 * 3600) return { start: '', end: '', type: getDefaultPayTypeValue() };
+        const end = Math.min(lastEnd + 3600, DAY_SECONDS - 60);
+        return { start: secondsToTime(lastEnd), end: secondsToTime(end), type: getDefaultPayTypeValue() };
+      }
+
+      function createIntervalRow(startValue, endValue) {
+        rowUid += 1;
+        const row = document.createElement('div');
+        row.className = 'interval-row';
+        row.dataset.rowId = String(rowUid);
+
+        const startInput = document.createElement('input');
+        startInput.type = 'text';
+        startInput.readOnly = true;
+        startInput.inputMode = 'none';
+        startInput.autocomplete = 'off';
+        startInput.spellcheck = false;
+        startInput.className = 'time-input time-trigger';
+        startInput.dataset.role = 'start';
+        startInput.value = startValue || '';
+        startInput.setAttribute('aria-label', '工作区间开始时间');
+        startInput.setAttribute('aria-haspopup', 'dialog');
+        startInput.setAttribute('aria-expanded', 'false');
+        startInput.setAttribute('aria-controls', 'timePicker');
+        startInput.title = '点击使用滚轮选择时间';
+
+        const arrow = document.createElement('span');
+        arrow.className = 'range-arrow';
+        arrow.textContent = '→';
+        arrow.setAttribute('aria-hidden', 'true');
+
+        const endInput = document.createElement('input');
+        endInput.type = 'text';
+        endInput.readOnly = true;
+        endInput.inputMode = 'none';
+        endInput.autocomplete = 'off';
+        endInput.spellcheck = false;
+        endInput.className = 'time-input time-trigger';
+        endInput.dataset.role = 'end';
+        endInput.value = endValue || '';
+        endInput.setAttribute('aria-label', '工作区间结束时间');
+        endInput.setAttribute('aria-haspopup', 'dialog');
+        endInput.setAttribute('aria-expanded', 'false');
+        endInput.setAttribute('aria-controls', 'timePicker');
+        endInput.title = '点击使用滚轮选择时间';
+
+        const removeButton = document.createElement('button');
+        removeButton.type = 'button';
+        removeButton.className = 'icon-btn remove-interval';
+        removeButton.setAttribute('aria-label', '删除该工作区间');
+        removeButton.title = '删除该工作区间';
+        removeButton.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
+
+        row.append(startInput, arrow, endInput, removeButton);
+        return row;
+      }
+
+      function createPayRuleRow(startValue, endValue, typeValue) {
+        rowUid += 1;
+        const row = document.createElement('div');
+        row.className = 'pay-rule-row';
+        row.dataset.rowId = String(rowUid);
+
+        const startInput = document.createElement('input');
+        startInput.type = 'text';
+        startInput.readOnly = true;
+        startInput.inputMode = 'none';
+        startInput.autocomplete = 'off';
+        startInput.spellcheck = false;
+        startInput.className = 'time-input time-trigger';
+        startInput.dataset.role = 'rule-start';
+        startInput.value = startValue || '';
+        startInput.setAttribute('aria-label', '计薪时间段开始时间');
+        startInput.setAttribute('aria-haspopup', 'dialog');
+        startInput.setAttribute('aria-expanded', 'false');
+        startInput.setAttribute('aria-controls', 'timePicker');
+        startInput.title = '点击使用滚轮选择时间';
+
+        const arrow = document.createElement('span');
+        arrow.className = 'range-arrow';
+        arrow.textContent = '→';
+        arrow.setAttribute('aria-hidden', 'true');
+
+        const endInput = document.createElement('input');
+        endInput.type = 'text';
+        endInput.readOnly = true;
+        endInput.inputMode = 'none';
+        endInput.autocomplete = 'off';
+        endInput.spellcheck = false;
+        endInput.className = 'time-input time-trigger';
+        endInput.dataset.role = 'rule-end';
+        endInput.value = endValue || '';
+        endInput.setAttribute('aria-label', '计薪时间段结束时间');
+        endInput.setAttribute('aria-haspopup', 'dialog');
+        endInput.setAttribute('aria-expanded', 'false');
+        endInput.setAttribute('aria-controls', 'timePicker');
+        endInput.title = '点击使用滚轮选择时间';
+
+        const typeSelect = document.createElement('select');
+        typeSelect.className = 'type-select';
+        typeSelect.dataset.role = 'rule-type';
+        typeSelect.setAttribute('aria-label', '计薪类型');
+        typeSelect.innerHTML = '<option value="normal">正常</option><option value="overtime">加班</option>';
+        typeSelect.value = PAY_TYPES.has(typeValue) ? typeValue : 'normal';
+
+        const removeButton = document.createElement('button');
+        removeButton.type = 'button';
+        removeButton.className = 'icon-btn remove-pay-rule';
+        removeButton.setAttribute('aria-label', '删除该计薪时间段');
+        removeButton.title = '删除该计薪时间段';
+        removeButton.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
+
+        row.append(startInput, arrow, endInput, typeSelect, removeButton);
+        return row;
+      }
+
+      function getIntervalRows() {
+        return Array.from(els.intervalList.querySelectorAll('.interval-row'));
+      }
+
+      function getPayRuleRows() {
+        return Array.from(els.payRuleList.querySelectorAll('.pay-rule-row'));
+      }
+
+      function refreshIntervalRows() {
+        const rows = getIntervalRows();
+        rows.forEach((row, index) => {
+          const startInput = row.querySelector('[data-role="start"]');
+          const endInput = row.querySelector('[data-role="end"]');
+          const removeButton = row.querySelector('.remove-interval');
+          if (startInput) startInput.setAttribute('aria-label', '第 ' + (index + 1) + ' 段工作区间开始时间');
+          if (endInput) endInput.setAttribute('aria-label', '第 ' + (index + 1) + ' 段工作区间结束时间');
+          if (removeButton) removeButton.disabled = rows.length <= 1;
+        });
+      }
+
+      function refreshPayRuleRows() {
+        const rows = getPayRuleRows();
+        rows.forEach((row, index) => {
+          const startInput = row.querySelector('[data-role="rule-start"]');
+          const endInput = row.querySelector('[data-role="rule-end"]');
+          const typeSelect = row.querySelector('[data-role="rule-type"]');
+          const removeButton = row.querySelector('.remove-pay-rule');
+          if (startInput) startInput.setAttribute('aria-label', '第 ' + (index + 1) + ' 条计薪时间段开始时间');
+          if (endInput) endInput.setAttribute('aria-label', '第 ' + (index + 1) + ' 条计薪时间段结束时间');
+          if (typeSelect) typeSelect.setAttribute('aria-label', '第 ' + (index + 1) + ' 条计薪类型');
+          if (removeButton) removeButton.setAttribute('aria-label', '删除第 ' + (index + 1) + ' 条计薪时间段');
+        });
+      }
+
+      function setDefaultPayType(value) {
+        els.defaultPayType.querySelectorAll('[data-pay-type]').forEach((button) => {
+          button.setAttribute('aria-pressed', String(button.dataset.payType === value));
+        });
+      }
+
+      function getDefaultPayTypeValue() {
+        const active = els.defaultPayType.querySelector('[data-pay-type][aria-pressed="true"]');
+        return active && PAY_TYPES.has(active.dataset.payType) ? active.dataset.payType : 'normal';
+      }
+
+      function setWeekdaySelection(days) {
+        const selected = new Set(days);
+        els.weekdayChips.querySelectorAll('[data-weekday]').forEach((button) => {
+          button.setAttribute('aria-pressed', String(selected.has(Number(button.dataset.weekday))));
+        });
+      }
+
+      function getSelectedWeekdays() {
+        return Array.from(els.weekdayChips.querySelectorAll('[data-weekday][aria-pressed="true"]'))
+          .map((button) => Number(button.dataset.weekday))
+          .filter((day) => Number.isInteger(day) && day >= 1 && day <= 7)
+          .sort((a, b) => a - b);
+      }
+
+      function renderForm() {
+        closeTimePicker(false);
+        els.normalRate.value = config.normalRate.toFixed(2);
+        els.overtimeRate.value = config.overtimeRate.toFixed(2);
+        setDefaultPayType(config.defaultPayType);
+        setWeekdaySelection(config.weekdayOvertime);
+
+        els.intervalList.replaceChildren();
+        for (const interval of config.workIntervals) {
+          els.intervalList.appendChild(createIntervalRow(interval.start, interval.end));
+        }
+        refreshIntervalRows();
+
+        els.payRuleList.replaceChildren();
+        for (const rule of config.payRules) {
+          els.payRuleList.appendChild(createPayRuleRow(rule.start, rule.end, rule.type));
+        }
+        refreshPayRuleRows();
+
+        hideConfigError();
+      }
+
+      function addIntervalRow(startValue, endValue) {
+        els.intervalList.appendChild(createIntervalRow(startValue, endValue));
+        refreshIntervalRows();
+        hideConfigError();
+        const rows = getIntervalRows();
+        const newRow = rows[rows.length - 1];
+        const startInput = newRow && newRow.querySelector('[data-role="start"]');
+        if (startInput) window.setTimeout(() => startInput.focus(), 0);
+        syncConfigWindowHeight();
+      }
+
+      function addPayRuleRow(startValue, endValue, typeValue) {
+        els.payRuleList.appendChild(createPayRuleRow(startValue, endValue, typeValue));
+        refreshPayRuleRows();
+        hideConfigError();
+        const rows = getPayRuleRows();
+        const newRow = rows[rows.length - 1];
+        const startInput = newRow && newRow.querySelector('[data-role="rule-start"]');
+        if (startInput) window.setTimeout(() => startInput.focus(), 0);
+        syncConfigWindowHeight();
+      }
+
+      function showConfigError(message) {
+        els.configError.textContent = message;
+        els.configError.classList.add('is-visible');
+        syncConfigWindowHeight();
+      }
+
+      function hideConfigError() {
+        const wasVisible = els.configError.classList.contains('is-visible');
+        els.configError.textContent = '';
+        els.configError.classList.remove('is-visible');
+        if (wasVisible) syncConfigWindowHeight();
+      }
+
+      function readRateValue(input, label, errors) {
+        const rateText = input.value.trim();
+        if (!/^\d+(\.\d{1,2})?$/.test(rateText)) {
+          errors.push(label + '需为大于 0 的数字，最多两位小数');
+          return null;
+        }
+        const rate = Number(rateText);
+        if (!Number.isFinite(rate) || rate <= 0) {
+          errors.push(label + '必须大于 0');
+          return null;
+        }
+        return Math.round(rate * 100) / 100;
+      }
+
+      function readFormConfig() {
+        const errors = [];
+        const normalRate = readRateValue(els.normalRate, '正常时薪', errors);
+        const overtimeRate = readRateValue(els.overtimeRate, '加班时薪', errors);
+        const defaultPayType = getDefaultPayTypeValue();
+        const weekdayOvertime = getSelectedWeekdays();
+
+        const ruleRows = getPayRuleRows();
+        const parsedRules = [];
+        ruleRows.forEach((row, index) => {
+          const startValue = row.querySelector('[data-role="rule-start"]').value;
+          const endValue = row.querySelector('[data-role="rule-end"]').value;
+          const type = row.querySelector('[data-role="rule-type"]').value;
+          const start = parseTime(startValue);
+          const end = parseTime(endValue);
+
+          if (!startValue || !endValue) {
+            errors.push('第 ' + (index + 1) + ' 条计薪时间段请填写完整的开始和结束时间');
+            return;
+          }
+          if (start === null || end === null) {
+            errors.push('第 ' + (index + 1) + ' 条计薪时间段格式有误');
+            return;
+          }
+          if (end <= start) {
+            errors.push('第 ' + (index + 1) + ' 条计薪时间段结束时间需晚于开始时间');
+            return;
+          }
+          if (!PAY_TYPES.has(type)) {
+            errors.push('第 ' + (index + 1) + ' 条计薪类型无效');
+            return;
+          }
+          parsedRules.push({ start, end, type, label: '第 ' + (index + 1) + ' 条' });
+        });
+
+        const sortedRules = parsedRules.slice().sort((a, b) => a.start - b.start);
+        for (let i = 1; i < sortedRules.length; i += 1) {
+          if (sortedRules[i].start < sortedRules[i - 1].end) {
+            errors.push('计薪时间段不能重叠：' + sortedRules[i - 1].label + ' 与 ' + sortedRules[i].label);
+          }
+        }
+
+        const rows = getIntervalRows();
+        if (rows.length === 0) errors.push('请至少添加一个工作区间');
+
+        const parsedIntervals = [];
+        rows.forEach((row, index) => {
+          const startValue = row.querySelector('[data-role="start"]').value;
+          const endValue = row.querySelector('[data-role="end"]').value;
+          const start = parseTime(startValue);
+          const end = parseTime(endValue);
+
+          if (!startValue || !endValue) {
+            errors.push('第 ' + (index + 1) + ' 段工作区间请填写完整的开始和结束时间');
+            return;
+          }
+          if (start === null || end === null) {
+            errors.push('第 ' + (index + 1) + ' 段工作区间时间格式有误');
+            return;
+          }
+          if (end <= start) {
+            errors.push('第 ' + (index + 1) + ' 段工作区间结束时间需晚于开始时间');
+            return;
+          }
+          parsedIntervals.push({ start, end, label: '第 ' + (index + 1) + ' 段' });
+        });
+
+        const sortedIntervals = parsedIntervals.slice().sort((a, b) => a.start - b.start);
+        for (let i = 1; i < sortedIntervals.length; i += 1) {
+          if (sortedIntervals[i].start < sortedIntervals[i - 1].end) {
+            errors.push('工作区间不能重叠：' + sortedIntervals[i - 1].label + ' 与 ' + sortedIntervals[i].label);
+          }
+        }
+
+        if (errors.length > 0) {
+          showConfigError(errors.join('；'));
+          return null;
+        }
+
+        return {
+          normalRate,
+          overtimeRate,
+          defaultPayType,
+          weekdayOvertime,
+          payRules: sortedRules.map((item) => ({
+            start: secondsToTime(item.start),
+            end: secondsToTime(item.end),
+            type: item.type
+          })),
+          workIntervals: sortedIntervals.map((item) => ({
+            start: secondsToTime(item.start),
+            end: secondsToTime(item.end)
+          }))
+        };
+      }
+
+      async function handleSave() {
+        const nextConfig = readFormConfig();
+        if (!nextConfig) return;
+
+        config = nextConfig;
+        const localPersisted = persistConfig();
+        renderForm();
+        rebuildTimeline();
+        lastRawWage = null;
+        pendingWage = 0;
+        tick();
+
+        const bridgePersisted = await saveConfigToBridge();
+        const hasBridge = Boolean(getBridgeApi());
+        const persisted = hasBridge ? bridgePersisted : localPersisted;
+        showToast(persisted ? '配置已保存' : '配置已应用，但写入本地配置失败', persisted ? 'default' : 'warn');
+      }
+
+      async function handleReset() {
+        config = cloneDefaultConfig();
+        const localPersisted = persistConfig();
+        renderForm();
+        rebuildTimeline();
+        lastRawWage = null;
+        pendingWage = 0;
+        tick();
+
+        const bridgePersisted = await saveConfigToBridge();
+        const hasBridge = Boolean(getBridgeApi());
+        const persisted = hasBridge ? bridgePersisted : localPersisted;
+        showToast(persisted ? '已恢复默认配置' : '已恢复默认配置（未能写入本地存储）', persisted ? 'default' : 'warn');
+      }
+
+
+      /* ============================================================
+       * 自定义时间滚轮选择器
+       * 输入一步 = 移动一步；鼠标与触控板分别换算；停止后吸附。
+       * ============================================================ */
+      function coerceInt(value, fallback, min, max) {
+        const number = Number(value);
+        if (!Number.isFinite(number)) return fallback;
+        return Math.max(min, Math.min(max, Math.round(number)));
+      }
+
+      function getWheelStep() {
+        return coerceInt(TIME_WHEEL_CONFIG.wheelStep, 1, 1, 10);
+      }
+
+      function getTimeWheelMetrics() {
+        const itemHeight = coerceInt(TIME_WHEEL_CONFIG.itemHeight, 32, 20, 64);
+        const visibleItems = coerceInt(TIME_WHEEL_CONFIG.visibleItems, 5, 3, 9);
+        return {
+          itemHeight,
+          visibleItems,
+          centerOffset: (itemHeight * (visibleItems - 1)) / 2
+        };
+      }
+
+      function applyTimeWheelLayout() {
+        const { itemHeight, visibleItems } = getTimeWheelMetrics();
+        els.timePicker.style.setProperty('--tp-item-height', itemHeight + 'px');
+        els.timePicker.style.setProperty('--tp-viewport-height', itemHeight * visibleItems + 'px');
+      }
+
+      function buildTimePickerColumn(key) {
+        const column = timePickerState.columns[key];
+        const viewport = key === 'hour' ? els.timePickerHour : els.timePickerMinute;
+        if (!viewport) return;
+
+        viewport.replaceChildren();
+        const band = document.createElement('div');
+        band.className = 'tp-band';
+        const track = document.createElement('div');
+        track.className = 'tp-track';
+        viewport.append(band, track);
+
+        column.viewport = viewport;
+        column.track = track;
+        column.items = [];
+        column.index = 0;
+        column.accumulator = 0;
+        column.pointer = null;
+
+        for (let i = 0; i < column.count; i += 1) {
+          const item = document.createElement('div');
+          item.className = 'tp-item';
+          item.id = 'tp-' + key + '-' + i;
+          item.dataset.index = String(i);
+          item.setAttribute('role', 'option');
+          item.setAttribute('aria-selected', 'false');
+          item.textContent = pad2(i);
+          track.appendChild(item);
+          column.items.push(item);
+        }
+
+        viewport.addEventListener('wheel', (event) => handleTimeColumnWheel(event, key), { passive: false });
+        viewport.addEventListener('keydown', (event) => handleTimeColumnKeydown(event, key));
+        setupTimeColumnPointer(key);
+      }
+
+      function buildTimePicker() {
+        if (timePickerState.built) return;
+        applyTimeWheelLayout();
+        buildTimePickerColumn('hour');
+        buildTimePickerColumn('minute');
+        timePickerState.built = true;
+      }
+
+      function readTrackTranslate(track, fallback) {
+        const transform = window.getComputedStyle(track).transform;
+        if (!transform || transform === 'none') return fallback;
+        const match = transform.match(/matrix(?:3d)?\(([^)]+)\)/);
+        if (!match) return fallback;
+        const parts = match[1].split(',').map((part) => Number(part.trim()));
+        if (parts.length >= 16) return parts[13];
+        if (parts.length >= 6) return parts[5];
+        return fallback;
+      }
+
+      function updateTimeColumnTransform(key, animate, translateOverride) {
+        const column = timePickerState.columns[key];
+        if (!column.track) return;
+        const { itemHeight, centerOffset } = getTimeWheelMetrics();
+        const translate = Number.isFinite(translateOverride)
+          ? translateOverride
+          : centerOffset - column.index * itemHeight;
+        const duration = animate && TIME_WHEEL_CONFIG.snap
+          ? coerceInt(TIME_WHEEL_CONFIG.animationMs, 160, 0, 1200)
+          : 0;
+        column.track.style.transitionDuration = duration + 'ms';
+        column.track.style.transform = 'translate3d(0, ' + translate + 'px, 0)';
+      }
+
+      function updateTimeColumnHighlight(key) {
+        const column = timePickerState.columns[key];
+        if (!column.viewport) return;
+        for (let i = 0; i < column.items.length; i += 1) {
+          const selected = i === column.index;
+          column.items[i].classList.toggle('is-selected', selected);
+          column.items[i].setAttribute('aria-selected', String(selected));
+        }
+        const selectedItem = column.items[column.index];
+        if (selectedItem) column.viewport.setAttribute('aria-activedescendant', selectedItem.id);
+      }
+
+      function updateTimePickerPreview() {
+        const hours = timePickerState.columns.hour.index;
+        const minutes = timePickerState.columns.minute.index;
+        const value = pad2(hours) + ':' + pad2(minutes);
+        setText(els.timePickerPreview, value);
+        return value;
+      }
+
+      function updateTimePickerValue() {
+        const value = updateTimePickerPreview();
+        const trigger = timePickerState.trigger;
+        if (trigger && trigger.value !== value) {
+          trigger.value = value;
+          trigger.dispatchEvent(new Event('input', { bubbles: true }));
+          trigger.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+      }
+
+      function setTimeColumnIndex(key, index, options) {
+        const settings = options || {};
+        const column = timePickerState.columns[key];
+        let next = index;
+        if (TIME_WHEEL_CONFIG.loop) {
+          next = ((next % column.count) + column.count) % column.count;
+        } else {
+          next = Math.max(0, Math.min(column.count - 1, next));
+        }
+        const changed = next !== column.index;
+        column.index = next;
+        updateTimeColumnTransform(key, settings.animate !== false);
+        updateTimeColumnHighlight(key);
+        if (settings.updateValue !== false) updateTimePickerValue();
+        return changed;
+      }
+
+      function moveTimeColumnBy(key, steps) {
+        if (!steps) return false;
+        const column = timePickerState.columns[key];
+        return setTimeColumnIndex(key, column.index + steps, { animate: true, updateValue: true });
+      }
+
+      function getTimeColumnNearestIndex(key, translate) {
+        const { itemHeight, centerOffset } = getTimeWheelMetrics();
+        const column = timePickerState.columns[key];
+        return Math.max(0, Math.min(column.count - 1, Math.round((centerOffset - translate) / itemHeight)));
+      }
+
+      function normalizeWheelDelta(event) {
+        const { itemHeight, visibleItems } = getTimeWheelMetrics();
+        let delta = event.deltaY;
+        if (event.deltaMode === 1) delta *= 16;
+        else if (event.deltaMode === 2) delta *= itemHeight * visibleItems;
+        return delta;
+      }
+
+      function finalizeTimeColumn(key) {
+        const column = timePickerState.columns[key];
+        if (column.settleTimer) {
+          window.clearTimeout(column.settleTimer);
+          column.settleTimer = null;
+        }
+        column.accumulator = 0;
+        updateTimeColumnTransform(key, true);
+        updateTimeColumnHighlight(key);
+        updateTimePickerValue();
+      }
+
+      function handleTimeColumnWheel(event, key) {
+        if (!timePickerState.open) return;
+        if (!event.deltaY) return;
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        const rawDelta = normalizeWheelDelta(event);
+        const direction = Math.sign(rawDelta);
+        if (!direction) return;
+
+        const column = timePickerState.columns[key];
+        const absDelta = Math.abs(rawDelta);
+        const isMouseWheel = event.deltaMode !== 0 || absDelta >= coerceInt(TIME_WHEEL_CONFIG.mouseNotchPx, 100, 20, 300);
+        let steps = 0;
+
+        if (isMouseWheel) {
+          // 一个滚轮事件只触发一次步进，绝不按像素幅度一次跳多项。
+          // 快速连续滚动会产生多个 wheel 事件，从而按事件数逐步累计。
+          steps = direction * getWheelStep();
+          column.accumulator = 0;
+        } else {
+          if (column.accumulator !== 0 && Math.sign(column.accumulator) !== direction) {
+            column.accumulator = 0;
+          }
+          column.accumulator += rawDelta;
+          const threshold = coerceInt(TIME_WHEEL_CONFIG.touchpadThresholdPx, 36, 4, 240);
+          const units = Math.trunc(Math.abs(column.accumulator) / threshold);
+          if (units > 0) {
+            const appliedUnits = Math.min(units, 1);
+            steps = direction * appliedUnits * getWheelStep();
+            column.accumulator -= direction * units * threshold;
+          }
+        }
+
+        timePickerState.activeColumn = key;
+
+        if (steps !== 0) {
+          moveTimeColumnBy(key, steps);
+        }
+
+        if (column.settleTimer) window.clearTimeout(column.settleTimer);
+        column.settleTimer = window.setTimeout(
+          () => finalizeTimeColumn(key),
+          coerceInt(TIME_WHEEL_CONFIG.debounceMs, 45, 0, 1000)
+        );
+      }
+
+      function handleTimeColumnKeydown(event, key) {
+        if (!timePickerState.open) return;
+        const column = timePickerState.columns[key];
+
+        if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
+          event.preventDefault();
+          event.stopPropagation();
+          const direction = event.key === 'ArrowUp' ? -1 : 1;
+          moveTimeColumnBy(key, direction * coerceInt(TIME_WHEEL_CONFIG.keyboardStep, 1, 1, 10));
+          return;
+        }
+
+        if (event.key === 'Home' || event.key === 'End') {
+          event.preventDefault();
+          event.stopPropagation();
+          setTimeColumnIndex(key, event.key === 'Home' ? 0 : column.count - 1, {
+            animate: true,
+            updateValue: true
+          });
+          return;
+        }
+
+        if (event.key === 'ArrowLeft' && key === 'minute') {
+          event.preventDefault();
+          focusTimeColumn('hour');
+          return;
+        }
+
+        if (event.key === 'ArrowRight' && key === 'hour') {
+          event.preventDefault();
+          focusTimeColumn('minute');
+          return;
+        }
+
+        if (event.key === 'Escape') {
+          event.preventDefault();
+          event.stopImmediatePropagation();
+          closeTimePicker(true);
+          return;
+        }
+
+        if (event.key === 'Enter') {
+          event.preventDefault();
+          event.stopPropagation();
+          closeTimePicker(true);
+        }
+      }
+
+      function setupTimeColumnPointer(key) {
+        const column = timePickerState.columns[key];
+        const viewport = column.viewport;
+        if (!viewport) return;
+
+        viewport.addEventListener('pointerdown', (event) => {
+          if (!timePickerState.open) return;
+          if (event.pointerType === 'mouse' && event.button !== 0) return;
+          if (column.pointer) return;
+
+          if (column.settleTimer) {
+            window.clearTimeout(column.settleTimer);
+            column.settleTimer = null;
+          }
+
+          const { itemHeight, centerOffset } = getTimeWheelMetrics();
+          const fallback = centerOffset - column.index * itemHeight;
+          column.pointer = {
+            id: event.pointerId,
+            startY: event.clientY,
+            startTranslate: readTrackTranslate(column.track, fallback),
+            moved: false
+          };
+          column.track.style.transitionDuration = '0ms';
+          timePickerState.activeColumn = key;
+          viewport.focus({ preventScroll: true });
+          try {
+            viewport.setPointerCapture(event.pointerId);
+          } catch (error) {
+            // 某些旧内核不支持指针捕获，不影响基础滑动
+          }
+          event.preventDefault();
+        });
+
+        viewport.addEventListener('pointermove', (event) => {
+          const pointer = column.pointer;
+          if (!pointer || pointer.id !== event.pointerId) return;
+
+          const { itemHeight, centerOffset } = getTimeWheelMetrics();
+          const delta = event.clientY - pointer.startY;
+          if (!pointer.moved && Math.abs(delta) > 3) pointer.moved = true;
+
+          const minTranslate = centerOffset - (column.count - 1) * itemHeight;
+          const maxTranslate = centerOffset;
+          const translate = Math.max(minTranslate, Math.min(maxTranslate, pointer.startTranslate + delta));
+          column.track.style.transform = 'translate3d(0, ' + translate + 'px, 0)';
+
+          const nearestIndex = getTimeColumnNearestIndex(key, translate);
+          if (nearestIndex !== column.index) {
+            column.index = nearestIndex;
+            updateTimeColumnHighlight(key);
+            updateTimePickerValue();
+          }
+
+          event.preventDefault();
+        });
+
+        function endPointer(event) {
+          const pointer = column.pointer;
+          if (!pointer || pointer.id !== event.pointerId) return;
+          column.pointer = null;
+
+          try {
+            if (viewport.hasPointerCapture(event.pointerId)) viewport.releasePointerCapture(event.pointerId);
+          } catch (error) {
+            // 忽略捕获释放异常
+          }
+
+          if (!pointer.moved) {
+            const element = document.elementFromPoint(event.clientX, event.clientY);
+            const item = element && element.closest ? element.closest('.tp-item') : null;
+            if (item && column.track.contains(item)) {
+              setTimeColumnIndex(key, Number(item.dataset.index), { animate: true, updateValue: true });
+            } else {
+              setTimeColumnIndex(key, column.index, { animate: true, updateValue: true });
+            }
+          } else {
+            setTimeColumnIndex(key, column.index, { animate: true, updateValue: true });
+          }
+
+          column.accumulator = 0;
+          event.preventDefault();
+        }
+
+        viewport.addEventListener('pointerup', endPointer);
+        viewport.addEventListener('pointercancel', endPointer);
+      }
+
+      function focusTimeColumn(key) {
+        timePickerState.activeColumn = key;
+        const viewport = key === 'hour' ? els.timePickerHour : els.timePickerMinute;
+        if (viewport) viewport.focus({ preventScroll: true });
+      }
+
+      function closeTimePicker(restoreFocus) {
+        if (!timePickerState.open) return;
+        timePickerState.open = false;
+
+        for (const key of ['hour', 'minute']) {
+          const column = timePickerState.columns[key];
+          if (column.settleTimer) {
+            window.clearTimeout(column.settleTimer);
+            column.settleTimer = null;
+          }
+          column.accumulator = 0;
+          column.pointer = null;
+        }
+
+        const trigger = timePickerState.trigger;
+        timePickerState.trigger = null;
+        els.timePicker.classList.remove('is-open');
+        els.timePicker.hidden = true;
+        els.timePickerBackdrop.hidden = true;
+
+        if (trigger) {
+          trigger.setAttribute('aria-expanded', 'false');
+          if (restoreFocus !== false) {
+            try {
+              trigger.focus({ preventScroll: true });
+            } catch (error) {
+              // 忽略焦点恢复失败
+            }
+          }
+        }
+      }
+
+      function positionTimePicker() {
+        if (!timePickerState.trigger) return;
+        const triggerRect = timePickerState.trigger.getBoundingClientRect();
+        const popupWidth = els.timePicker.offsetWidth;
+        const popupHeight = els.timePicker.offsetHeight;
+        const margin = 8;
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+
+        let left = triggerRect.left + (triggerRect.width - popupWidth) / 2;
+        left = Math.max(margin, Math.min(left, viewportWidth - popupWidth - margin));
+
+        let top;
+        if (triggerRect.bottom + margin + popupHeight <= viewportHeight - margin) {
+          top = triggerRect.bottom + margin;
+        } else if (triggerRect.top - margin - popupHeight >= margin) {
+          top = triggerRect.top - margin - popupHeight;
+        } else {
+          top = (viewportHeight - popupHeight) / 2;
+        }
+        top = Math.max(margin, Math.min(top, viewportHeight - popupHeight - margin));
+
+        els.timePicker.style.left = left + 'px';
+        els.timePicker.style.top = top + 'px';
+      }
+
+      function openTimePicker(trigger) {
+        if (!trigger || !document.body.contains(trigger)) return;
+        closeTimePicker(false);
+        buildTimePicker();
+        applyTimeWheelLayout();
+
+        const parsed = parseTime(trigger.value);
+        const totalMinutes = parsed === null ? 9 * 60 : Math.floor(parsed / 60);
+        const hour = Math.floor(totalMinutes / 60);
+        const minute = totalMinutes % 60;
+
+        timePickerState.trigger = trigger;
+        timePickerState.open = true;
+        timePickerState.activeColumn = 'hour';
+
+        setTimeColumnIndex('hour', hour, { animate: false, updateValue: false });
+        setTimeColumnIndex('minute', minute, { animate: false, updateValue: false });
+        updateTimePickerPreview();
+
+        setText(els.timePickerTitle, trigger.getAttribute('aria-label') || '选择时间');
+        trigger.setAttribute('aria-expanded', 'true');
+        els.timePicker.hidden = false;
+        els.timePickerBackdrop.hidden = false;
+        els.timePicker.classList.remove('is-open');
+        positionTimePicker();
+
+        window.requestAnimationFrame(() => {
+          if (!timePickerState.open) return;
+          els.timePicker.classList.add('is-open');
+          focusTimeColumn('hour');
+        });
+      }
+
+      function adjustTimeTriggerValue(trigger, deltaMinutes) {
+        const current = parseTime(trigger.value);
+        const baseMinutes = current === null ? 9 * 60 : Math.floor(current / 60);
+        const nextMinutes = Math.max(0, Math.min(23 * 60 + 59, baseMinutes + deltaMinutes));
+        const value = pad2(Math.floor(nextMinutes / 60)) + ':' + pad2(nextMinutes % 60);
+        if (trigger.value === value) return;
+        trigger.value = value;
+        trigger.dispatchEvent(new Event('input', { bubbles: true }));
+        trigger.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+
+      function handleTimeTriggerKeydown(event) {
+        const target = event.target;
+        if (!(target instanceof HTMLElement) || !target.classList.contains('time-trigger')) return;
+
+        if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
+          event.preventDefault();
+          event.stopPropagation();
+          const direction = event.key === 'ArrowUp' ? -1 : 1;
+          const minutes = direction * (event.shiftKey ? 10 : 1) * coerceInt(TIME_WHEEL_CONFIG.keyboardStep, 1, 1, 10);
+          adjustTimeTriggerValue(target, minutes);
+          return;
+        }
+
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          event.stopPropagation();
+          openTimePicker(target);
+        }
+      }
+
+      function initTimeWheelPicker() {
+        buildTimePicker();
+        applyTimeWheelLayout();
+
+        document.addEventListener('click', (event) => {
+          const target = event.target;
+          const trigger = target instanceof Element ? target.closest('.time-trigger') : null;
+          if (!trigger) return;
+          event.preventDefault();
+          openTimePicker(trigger);
+        });
+
+        document.addEventListener('keydown', handleTimeTriggerKeydown, true);
+
+        document.addEventListener('keydown', (event) => {
+          if (!timePickerState.open || event.key !== 'Escape') return;
+          event.preventDefault();
+          event.stopImmediatePropagation();
+          closeTimePicker(true);
+        }, true);
+
+        els.timePickerBackdrop.addEventListener('click', () => closeTimePicker(true));
+        els.timePickerDone.addEventListener('click', () => closeTimePicker(true));
+
+        els.timePickerBackdrop.addEventListener('wheel', (event) => event.preventDefault(), { passive: false });
+        els.timePicker.addEventListener('wheel', (event) => {
+          if (!(event.target instanceof Element) || !event.target.closest('.tp-viewport')) {
+            event.preventDefault();
+          }
+        }, { passive: false });
+
+        window.addEventListener('resize', () => {
+          if (timePickerState.open) positionTimePicker();
+        });
+
+        window.addEventListener('scroll', () => {
+          if (timePickerState.open) closeTimePicker(false);
+        }, true);
+
+        window.TimeWheelPicker = {
+          configure(partial) {
+            if (!partial || typeof partial !== 'object') return this.getConfig();
+            if (partial.wheelStep !== undefined) {
+              TIME_WHEEL_CONFIG.wheelStep = coerceInt(partial.wheelStep, 1, 1, 10);
+            }
+            if (partial.animationMs !== undefined) {
+              TIME_WHEEL_CONFIG.animationMs = coerceInt(partial.animationMs, 160, 0, 1200);
+            }
+            if (partial.debounceMs !== undefined) {
+              TIME_WHEEL_CONFIG.debounceMs = coerceInt(partial.debounceMs, 45, 0, 1000);
+            }
+            if (partial.mouseNotchPx !== undefined) {
+              TIME_WHEEL_CONFIG.mouseNotchPx = coerceInt(partial.mouseNotchPx, 100, 20, 300);
+            }
+            if (partial.touchpadThresholdPx !== undefined) {
+              TIME_WHEEL_CONFIG.touchpadThresholdPx = coerceInt(partial.touchpadThresholdPx, 36, 4, 240);
+            }
+            if (partial.keyboardStep !== undefined) {
+              TIME_WHEEL_CONFIG.keyboardStep = coerceInt(partial.keyboardStep, 1, 1, 10);
+            }
+            if (partial.loop !== undefined) TIME_WHEEL_CONFIG.loop = Boolean(partial.loop);
+            if (partial.snap !== undefined) TIME_WHEEL_CONFIG.snap = Boolean(partial.snap);
+            if (partial.itemHeight !== undefined) {
+              TIME_WHEEL_CONFIG.itemHeight = coerceInt(partial.itemHeight, 32, 20, 64);
+            }
+            if (partial.visibleItems !== undefined) {
+              TIME_WHEEL_CONFIG.visibleItems = coerceInt(partial.visibleItems, 5, 3, 9);
+            }
+
+            applyTimeWheelLayout();
+            if (timePickerState.open) {
+              setTimeColumnIndex('hour', timePickerState.columns.hour.index, { animate: false, updateValue: false });
+              setTimeColumnIndex('minute', timePickerState.columns.minute.index, { animate: false, updateValue: false });
+              updateTimePickerValue();
+              positionTimePicker();
+            }
+            return this.getConfig();
+          },
+          getConfig() {
+            return { ...TIME_WHEEL_CONFIG };
+          }
+        };
+      }
+
+      /* ============================================================
+       * 交互与提示
+       * ============================================================ */
+      function setConfigOpen(open) {
+        if (!open) closeTimePicker(false);
+        els.config.classList.toggle('is-open', open);
+        els.configToggle.setAttribute('aria-expanded', String(open));
+        els.configBody.hidden = !open;
+        requestWindowResize(open);
+      }
+
+      function showToast(message, tone) {
+        window.clearTimeout(toastTimer);
+        els.toast.textContent = message;
+        els.toast.dataset.tone = tone || 'default';
+        els.toast.classList.add('is-visible');
+        toastTimer = window.setTimeout(() => {
+          els.toast.classList.remove('is-visible');
+        }, 2100);
+      }
+
+      function bindEvents() {
+        els.configToggle.addEventListener('click', () => {
+          setConfigOpen(Boolean(els.configBody.hidden));
+        });
+
+        els.saveBtn.addEventListener('click', handleSave);
+        els.resetBtn.addEventListener('click', handleReset);
+
+        els.addInterval.addEventListener('click', () => {
+          const draft = nextIntervalDraft();
+          addIntervalRow(draft.start, draft.end);
+        });
+
+        els.addPayRule.addEventListener('click', () => {
+          const draft = nextPayRuleDraft();
+          addPayRuleRow(draft.start, draft.end, draft.type);
+        });
+
+        els.intervalList.addEventListener('click', (event) => {
+          const button = event.target.closest('.remove-interval');
+          if (!button) return;
+          if (getIntervalRows().length <= 1) return;
+          const row = button.closest('.interval-row');
+          if (row) row.remove();
+          refreshIntervalRows();
+          hideConfigError();
+          syncConfigWindowHeight();
+        });
+
+        els.payRuleList.addEventListener('click', (event) => {
+          const button = event.target.closest('.remove-pay-rule');
+          if (!button) return;
+          const row = button.closest('.pay-rule-row');
+          if (row) row.remove();
+          refreshPayRuleRows();
+          hideConfigError();
+          syncConfigWindowHeight();
+        });
+
+        els.defaultPayType.addEventListener('click', (event) => {
+          const button = event.target.closest('[data-pay-type]');
+          if (!button) return;
+          setDefaultPayType(button.dataset.payType);
+          hideConfigError();
+        });
+
+        els.weekdayChips.addEventListener('click', (event) => {
+          const button = event.target.closest('[data-weekday]');
+          if (!button) return;
+          const pressed = button.getAttribute('aria-pressed') === 'true';
+          button.setAttribute('aria-pressed', String(!pressed));
+          hideConfigError();
+        });
+
+        els.normalRate.addEventListener('input', hideConfigError);
+        els.overtimeRate.addEventListener('input', hideConfigError);
+        els.intervalList.addEventListener('input', hideConfigError);
+        els.intervalList.addEventListener('change', hideConfigError);
+        els.payRuleList.addEventListener('input', hideConfigError);
+        els.payRuleList.addEventListener('change', hideConfigError);
+
+        els.configBody.addEventListener('keydown', (event) => {
+          if (event.key === 'Enter'
+            && event.target instanceof HTMLInputElement
+            && !event.target.classList.contains('time-trigger')) {
+            event.preventDefault();
+            handleSave();
+          }
+        });
+
+        // 使用 Win32 原生拖动：鼠标移出窗口范围也能继续拖动，且更跟手
+        if (els.dragZone) {
+          els.dragZone.addEventListener('mousedown', (event) => {
+            if (event.button !== 0) return;
+            const target = event.target;
+            if (target instanceof Element && target.closest('button, input, a, select, textarea')) return;
+            const api = getBridgeApi();
+            if (!api) return;
+            event.preventDefault();
+            api.start_window_drag().catch((error) => console.warn('窗口拖动失败', error));
+          });
+        }
+
+        // 桌面窗口按钮：在普通浏览器中隐藏，不需要做任何降级处理
+        if (els.pinBtn) {
+          els.pinBtn.addEventListener('click', async () => {
+            const api = getBridgeApi();
+            if (!api) return;
+            try {
+              const state = await api.toggle_topmost();
+              setPinState(Boolean(state && state.on_top));
+            } catch (error) {
+              console.warn('切换置顶状态失败', error);
+            }
+          });
+        }
+
+        if (els.minimizeBtn) {
+          els.minimizeBtn.addEventListener('click', () => {
+            const api = getBridgeApi();
+            if (api) api.minimize_window().catch((error) => console.warn('最小化失败', error));
+          });
+        }
+
+        if (els.closeBtn) {
+          els.closeBtn.addEventListener('click', () => {
+            const api = getBridgeApi();
+            if (api) api.close_window().catch((error) => console.warn('关闭失败', error));
+          });
+        }
+
+        document.addEventListener('keydown', (event) => {
+          if (event.key === 'Escape' && !els.configBody.hidden) {
+            setConfigOpen(false);
+          }
+        });
+
+        document.addEventListener('visibilitychange', () => {
+          if (!document.hidden) tick();
+        });
+      }
+
+      /* ============================================================
+       * 初始化
+       * ============================================================ */
+      function init() {
+        els.ringProgress.style.strokeDasharray = String(RING_CIRCUMFERENCE);
+        els.ringProgress.style.strokeDashoffset = String(RING_CIRCUMFERENCE);
+
+        renderForm();
+        rebuildTimeline();
+        setConfigOpen(false);
+        bindEvents();
+        initTimeWheelPicker();
+
+        tick();
+        scheduleNextTick();
+      }
+
+      init();
+      bindDesktopBridge();
+    })();
+  </script>
+</body>
+</html>
