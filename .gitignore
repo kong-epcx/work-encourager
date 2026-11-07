@@ -5,8 +5,10 @@ __pycache__/
 
 # Build output
 build/
-dist/
 *.spec
+
+# Release copy; the canonical build is dist/上班鼓励器.exe
+dist/WorkEncourager.exe
 
 # Local configs, logs and test artifacts
 .env

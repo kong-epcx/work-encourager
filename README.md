@@ -4,9 +4,12 @@
 
 ## 下载
 
-Windows 免安装版：前往本仓库的 **Releases** 页面下载 `WorkEncourager.exe`，双击运行即可。
+Windows 免安装版有两种获取方式：
 
-需要 Windows 10/11，并已安装 WebView2 运行时（Windows 10/11 通常自带）。
+- 直接下载仓库内文件：`dist/上班鼓励器.exe`
+- 或前往 **Releases** 页面下载附件 `WorkEncourager.exe`
+
+下载后双击运行即可。需要 Windows 10/11，并已安装 WebView2 运行时（Windows 10/11 通常自带）。
 
 ## 技术方案
 
@@ -127,7 +130,8 @@ powershell -ExecutionPolicy Bypass -File build.ps1
 ├─ assets/
 │  ├─ app.ico
 │  └─ app.png
-└─ dist/             # 打包后生成
+└─ dist/
+   └─ 上班鼓励器.exe  # 预构建的 Windows 可执行文件
 ```
 
 ## 备注
