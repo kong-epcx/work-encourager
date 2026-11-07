@@ -22,7 +22,7 @@ from typing import Any
 import webview
 from webview.window import FixPoint
 
-APP_NAME = "上班鼓励器"
+APP_NAME = "上班鼓励器（work-encourager）· 时薪计算器 / 工资累积器"
 APP_ID = "WorkEncourager.Desktop"
 WINDOW_WIDTH = 380
 COLLAPSED_HEIGHT = 600
