@@ -6,10 +6,12 @@
 
 Windows 免安装版有两种获取方式：
 
-- 直接下载仓库内文件：`dist/上班鼓励器.exe`
+- 直接下载仓库内文件：[`dist/上班鼓励器.exe`](dist/上班鼓励器.exe)
 - 或前往 **Releases** 页面下载附件 `WorkEncourager.exe`
 
 下载后双击运行即可。需要 Windows 10/11，并已安装 WebView2 运行时（Windows 10/11 通常自带）。
+
+SHA-256：`E3D5B68FC03EAB6F1F351671ACCF5B8129C8142457ED7D5BD5C878BD11C85F50`
 
 ## 技术方案
 
